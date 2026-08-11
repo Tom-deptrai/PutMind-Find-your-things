@@ -1,48 +1,80 @@
 {
   "version": 1,
-  "productionReady": false,
+  "productionReady": true,
   "meaning": "What is this? Where did you put it?",
-  "notes": "Short natural prompts after the user photographs an item. Do not speak the PutMind brand.",
+  "notes": "Short natural prompts after the user photographs an item. Do not speak the PutMind brand. Generated offline; no runtime TTS.",
+  "generationEngines": {
+    "en-US": "piper",
+    "ja-JP": "kokoro",
+    "de-DE": "piper",
+    "vi-VN": "vieneu",
+    "ko-KR": "melo",
+    "fr-FR": "piper",
+    "es-ES": "piper",
+    "pt-BR": "piper",
+    "it-IT": "kokoro",
+    "zh-TW": "kokoro"
+  },
   "locales": {
     "en-US": {
       "text": "What is this? Where did you put it?",
-      "voice": "en-US-Neural2-F"
+      "engine": "piper",
+      "model": "en_US-joe-medium",
+      "voice": "joe"
     },
     "ja-JP": {
       "text": "これは何ですか？どこに置きましたか？",
-      "voice": "ja-JP-Neural2-B"
+      "engine": "kokoro",
+      "model": "hexgrad/Kokoro-82M",
+      "voice": "jf_alpha"
     },
     "de-DE": {
       "text": "Was ist das? Wohin hast du es gelegt?",
-      "voice": "de-DE-Neural2-F"
+      "engine": "piper",
+      "model": "de_DE-thorsten-medium",
+      "voice": "thorsten"
     },
     "vi-VN": {
       "text": "Đây là gì? Bạn để ở đâu?",
-      "voice": "vi-VN-Neural2-A"
+      "engine": "vieneu",
+      "model": "pnnbao-ump/VieNeu-TTS-v3-Turbo",
+      "voice": "Ngọc Lan (default)"
     },
     "ko-KR": {
       "text": "이게 뭐예요? 어디에 두었어요?",
-      "voice": "ko-KR-Neural2-A"
+      "engine": "melo",
+      "model": "myshell-ai/MeloTTS-Korean",
+      "voice": "KR"
     },
     "fr-FR": {
       "text": "Qu’est-ce que c’est ? Où l’avez-vous rangé ?",
-      "voice": "fr-FR-Neural2-A"
+      "engine": "piper",
+      "model": "fr_FR-siwis-medium",
+      "voice": "siwis"
     },
     "es-ES": {
       "text": "¿Qué es esto? ¿Dónde lo has puesto?",
-      "voice": "es-ES-Neural2-A"
+      "engine": "piper",
+      "model": "es_ES-davefx-medium",
+      "voice": "davefx"
     },
     "pt-BR": {
       "text": "O que é isso? Onde você guardou?",
-      "voice": "pt-BR-Neural2-A"
+      "engine": "piper",
+      "model": "pt_BR-faber-medium",
+      "voice": "faber"
     },
     "it-IT": {
       "text": "Cos’è questo? Dove l’hai messo?",
-      "voice": "it-IT-Neural2-A"
+      "engine": "kokoro",
+      "model": "hexgrad/Kokoro-82M",
+      "voice": "if_sara"
     },
     "zh-TW": {
       "text": "這是什麼？你放在哪裡了？",
-      "voice": "cmn-TW-Wavenet-A"
+      "engine": "kokoro",
+      "model": "hexgrad/Kokoro-82M",
+      "voice": "zf_xiaobei"
     }
   }
 }

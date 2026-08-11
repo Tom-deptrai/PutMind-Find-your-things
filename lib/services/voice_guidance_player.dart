@@ -15,7 +15,7 @@ class VoiceGuidancePlayer {
     return _injected ?? (_player ??= AudioPlayer());
   }
 
-  /// Asset path for [language]. Files may be DEV placeholders.
+  /// Asset path for [language] (bundled production WAV).
   static String assetPathFor(AppLanguage language) {
     return 'assets/voice_guidance/${language.voiceGuidanceLocale}.wav';
   }

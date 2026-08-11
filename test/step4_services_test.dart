@@ -26,6 +26,7 @@ void main() {
           .map((e) => e.voiceGuidanceLocale)
           .toSet();
       expect(locales, expected);
+      expect(json['productionReady'], isTrue);
     });
 
     test('asset mapping exists for every AppLanguage', () {
@@ -35,25 +36,81 @@ void main() {
       }
     });
 
-    test('productionReady implies non-placeholder sizes', () {
-      final json =
-          jsonDecode(
-                File('assets/voice_guidance/scripts.json').readAsStringSync(),
-              )
-              as Map<String, dynamic>;
-      final ready = json['productionReady'] == true;
+    test('all 10 production assets are non-silence and non-trivial', () {
       for (final lang in AppLanguage.values) {
         final file = File(VoiceGuidancePlayer.assetPathFor(lang));
         final len = file.lengthSync();
-        if (ready) {
-          expect(
-            len,
-            isNot(kVoiceSilencePlaceholderBytes),
-            reason: '${lang.voiceGuidanceLocale} still silence',
-          );
-        } else {
-          expect(len, greaterThan(0));
-        }
+        expect(len, greaterThan(0), reason: lang.voiceGuidanceLocale);
+        expect(
+          len,
+          isNot(kVoiceSilencePlaceholderBytes),
+          reason: '${lang.voiceGuidanceLocale} still silence placeholder',
+        );
+        expect(
+          len,
+          greaterThan(20000),
+          reason: '${lang.voiceGuidanceLocale} unexpectedly small',
+        );
+      }
+    });
+
+    test('no Google Cloud voice generator remains in tool/', () {
+      expect(
+        File('tool/generate_voice_guidance.py').existsSync(),
+        isFalse,
+        reason: 'cloud TTS generator must stay removed',
+      );
+      expect(
+        File('tool/generate_voice_guidance_offline.py').existsSync(),
+        isTrue,
+      );
+      final scripts = File(
+        'assets/voice_guidance/scripts.json',
+      ).readAsStringSync();
+      expect(scripts.toLowerCase().contains('neural2'), isFalse);
+      expect(scripts.toLowerCase().contains('wavenet'), isFalse);
+      final licenseReadme = File(
+        'docs/voice_guidance_license/README.md',
+      ).readAsStringSync().toLowerCase();
+      expect(licenseReadme.contains('google cloud text-to-speech'), isFalse);
+      expect(licenseReadme.contains('application_credentials'), isFalse);
+      expect(licenseReadme.contains('neural2'), isFalse);
+    });
+
+    test('playback failure still proceeds to speech listening', () async {
+      final images = ImageStorage.forDirectory(
+        Directory.systemTemp.createTempSync('pm_voice_fail_'),
+      );
+      final state = AppState(
+        repository: InMemoryMemoryRepository(),
+        imageStorage: images,
+        purchaseService: FakePurchaseService(),
+        voiceGuidancePlayer: _ThrowingVoiceGuidancePlayer(),
+        settings: const AppSettings(
+          onboardingCompleted: true,
+          voiceGuidance: true,
+          language: AppLanguage.vietnamese,
+        ),
+      );
+      state.takePhoto(mockImagePath: 'mock-captured');
+      expect(state.capturePhase, CapturePhase.guiding);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(state.capturePhase, CapturePhase.listening);
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      expect(state.capturePhase, CapturePhase.editing);
+    });
+
+    test('language switch uses matching voice locale mapping', () {
+      expect(AppLanguage.vietnamese.voiceGuidanceLocale, 'vi-VN');
+      expect(AppLanguage.english.voiceGuidanceLocale, 'en-US');
+      expect(AppLanguage.japanese.voiceGuidanceLocale, 'ja-JP');
+      expect(AppLanguage.korean.voiceGuidanceLocale, 'ko-KR');
+      expect(AppLanguage.traditionalChineseHant.voiceGuidanceLocale, 'zh-TW');
+      for (final lang in AppLanguage.values) {
+        expect(
+          VoiceGuidancePlayer.assetPathFor(lang),
+          'assets/voice_guidance/${lang.voiceGuidanceLocale}.wav',
+        );
       }
     });
   });
@@ -148,7 +205,9 @@ void main() {
       final bog = BytesBuilder();
       bog.add(utf8.encode('PMBK'));
       bog.add((ByteData(4)..setUint32(0, 99, Endian.big)).buffer.asUint8List());
-      bog.add((ByteData(4)..setUint32(0, 1000, Endian.big)).buffer.asUint8List());
+      bog.add(
+        (ByteData(4)..setUint32(0, 1000, Endian.big)).buffer.asUint8List(),
+      );
       bog.add((ByteData(2)..setUint16(0, 1, Endian.big)).buffer.asUint8List());
       bog.add([0]); // salt
       bog.add((ByteData(2)..setUint16(0, 1, Endian.big)).buffer.asUint8List());
@@ -188,45 +247,48 @@ void main() {
   });
 
   group('Monetization', () {
-    test('free users can create through memory #20; #21 opens paywall', () async {
-      final repo = InMemoryMemoryRepository();
-      final images = ImageStorage.forDirectory(
-        Directory.systemTemp.createTempSync('pm_mon_'),
-      );
-      final purchase = FakePurchaseService();
-      final state = AppState(
-        repository: repo,
-        imageStorage: images,
-        purchaseService: purchase,
-        settings: const AppSettings(onboardingCompleted: true),
-      );
-      await purchase.initialize();
-
-      for (var i = 0; i < kFreeMemoryLimit; i++) {
-        await repo.upsert(
-          Memory(
-            id: 'id-$i',
-            transcript: 'Item $i',
-            createdAt: DateTime.utc(2026, 1, 1),
-            updatedAt: DateTime.utc(2026, 1, 1),
-          ),
+    test(
+      'free users can create through memory #20; #21 opens paywall',
+      () async {
+        final repo = InMemoryMemoryRepository();
+        final images = ImageStorage.forDirectory(
+          Directory.systemTemp.createTempSync('pm_mon_'),
         );
-      }
-      await state.reloadMemories();
-      expect(state.canAddMemory, isFalse);
-      expect(state.memoryCount, kFreeMemoryLimit);
+        final purchase = FakePurchaseService();
+        final state = AppState(
+          repository: repo,
+          imageStorage: images,
+          purchaseService: purchase,
+          settings: const AppSettings(onboardingCompleted: true),
+        );
+        await purchase.initialize();
 
-      state.openPaywall();
-      expect(state.showPaywall, isTrue);
+        for (var i = 0; i < kFreeMemoryLimit; i++) {
+          await repo.upsert(
+            Memory(
+              id: 'id-$i',
+              transcript: 'Item $i',
+              createdAt: DateTime.utc(2026, 1, 1),
+              updatedAt: DateTime.utc(2026, 1, 1),
+            ),
+          );
+        }
+        await state.reloadMemories();
+        expect(state.canAddMemory, isFalse);
+        expect(state.memoryCount, kFreeMemoryLimit);
 
-      await repo.delete('id-0');
-      await state.reloadMemories();
-      expect(state.canAddMemory, isTrue);
+        state.openPaywall();
+        expect(state.showPaywall, isTrue);
 
-      await state.grantLifetimeEntitlement();
-      expect(state.settings.isLifetimeUnlocked, isTrue);
-      expect(state.canAddMemory, isTrue);
-    });
+        await repo.delete('id-0');
+        await state.reloadMemories();
+        expect(state.canAddMemory, isTrue);
+
+        await state.grantLifetimeEntitlement();
+        expect(state.settings.isLifetimeUnlocked, isTrue);
+        expect(state.canAddMemory, isTrue);
+      },
+    );
 
     test('purchase success unlocks lifetime', () async {
       final purchase = FakePurchaseService(buyResult: PurchasePhase.success);
@@ -262,6 +324,13 @@ void main() {
       expect(state.settings.isLifetimeUnlocked, isFalse);
     });
   });
+}
+
+class _ThrowingVoiceGuidancePlayer extends VoiceGuidancePlayer {
+  @override
+  Future<void> play(AppLanguage language) async {
+    throw StateError('simulated playback failure');
+  }
 }
 
 class _FlakyRepo implements MemoryRepository {

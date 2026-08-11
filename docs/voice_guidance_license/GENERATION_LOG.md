@@ -2,4 +2,4 @@
 
 | Date | Tool | Voices | Notes |
 |------|------|--------|-------|
-| — | Google Cloud TTS (`tool/generate_voice_guidance.py`) | See `scripts.json` | Not run yet — awaiting publisher credentials |
+| 2026-08-11 | Offline pipeline (`tool/generate_piper_batch.py`, `tool/generate_kokoro_batch.py`, `tool/generate_vi_ko_offline.py`) | See `scripts.json` | Replaced DEV silence placeholders. Technically generated; ready for owner listening review. No cloud TTS. |

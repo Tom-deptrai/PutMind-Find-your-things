@@ -71,7 +71,8 @@ class AppState extends ChangeNotifier {
     final loaded = settings ?? await store.load();
     final repo = repository ?? InMemoryMemoryRepository();
     final images = imageStorage ?? await ImageStorage.create();
-    final purchases = purchaseService ?? FakePurchaseService(isAvailable: false);
+    final purchases =
+        purchaseService ?? FakePurchaseService(isAvailable: false);
     final state = AppState(
       repository: repo,
       imageStorage: images,
@@ -383,7 +384,11 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> _playGuidanceThenListen() async {
-    await _voicePlayer.play(_settings.language);
+    try {
+      await _voicePlayer.play(_settings.language);
+    } catch (_) {
+      // Playback failure must never block Speech-to-Text.
+    }
     if (_capturePhase == CapturePhase.guiding) {
       await startListening();
     }

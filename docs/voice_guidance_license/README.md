@@ -2,33 +2,47 @@
 
 ## Approach
 
-PutMind bundles **pre-generated** spoken prompts. The app does **not** call cloud TTS at runtime.
+PutMind bundles **pre-generated** spoken prompts. The app does **not** call cloud TTS at runtime and has **no** Google Cloud / Azure / Polly / ElevenLabs / OpenAI / Edge online TTS dependency.
 
-Production audio is generated offline with **Google Cloud Text-to-Speech** (Neural2 / WaveNet voices listed in `assets/voice_guidance/scripts.json`), then committed as app assets.
+Production audio is synthesized **offline** (build-time tooling under `tool/`), trimmed/normalized, then committed as `assets/voice_guidance/{locale}.wav`.
 
-## Commercial use / redistribution
+## Engines used
 
-Google Cloud Text-to-Speech allows customers to use synthesized audio in their products subject to the [Google Cloud Terms of Service](https://cloud.google.com/terms) and [Cloud Text-to-Speech documentation](https://cloud.google.com/text-to-speech/docs). PutMind only ships audio generated under a project owned by the PutMind publisher.
+| Engine | Code license | Used for |
+|--------|--------------|----------|
+| Piper (rhasspy binary + voice ONNX) | MIT binary; per-voice MODEL_CARD | en-US, de-DE, fr-FR, es-ES, pt-BR |
+| Kokoro-82M (`hexgrad/Kokoro-82M`) | Apache-2.0 | ja-JP, it-IT, zh-TW |
+| VieNeu-TTS-v3-Turbo | Apache-2.0 (model + code) | vi-VN |
+| MeloTTS Korean | MIT (library + model card) | ko-KR |
 
-Do **not** commit API keys or service-account JSON to this repository.
+Per-locale gate notes: [`locales/`](locales/).
+
+## Rejected for commercial PutMind shipping
+
+| Candidate | Reason |
+|-----------|--------|
+| Piper `vi_VN-vivos-*` | MODEL_CARD CC BY-NC-SA |
+| Piper `zh_CN-huayan-*` | MODEL_CARD license unclear |
+| Piper `it_IT-paola-*` | MODEL_CARD unclear → Kokoro used instead |
+| VieNeu-TTS-0.3B | CC BY-NC 4.0 |
+| Hosted cloud TTS APIs | Out of scope for this offline task |
 
 ## Generation
 
-```bash
-# Set credentials (pick one):
-#   export GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json
-#   export GOOGLE_TTS_API_KEY=your_api_key
+```powershell
+# One-shot orchestrator (Piper + Kokoro + VieNeu + Melo as configured)
+.\tool\.venv_tts312\Scripts\python.exe tool\generate_voice_guidance_offline.py
 
-python tool/generate_voice_guidance.py
+# Or only missing locales:
+.\tool\.venv_tts312\Scripts\python.exe tool\generate_vi_ko_offline.py
 ```
 
-After a successful run:
+Do **not** commit `tool/.tts_cache/`, `tool/.venv*/`, or ONNX/model weights.
 
-1. Confirm each `assets/voice_guidance/{locale}.wav` is no longer the DEV silence placeholder (~12844 bytes).
-2. Set `"productionReady": true` in `assets/voice_guidance/scripts.json`.
-3. Update the status table in `assets/voice_guidance/README.md`.
-4. Record generate date / GCP project (non-secret) in `docs/voice_guidance_license/GENERATION_LOG.md`.
+## Owner listening
 
-## Status
+```powershell
+.\tool\play_voice_guidance.ps1
+```
 
-Until credentials are provided and the generator is run, assets remain DEV silence placeholders. Scripts and pipeline are ready.
+Copies assets into `docs/voice_guidance_license/listen/` (gitignored) and opens Explorer + a `.m3u` playlist.
