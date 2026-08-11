@@ -13,11 +13,19 @@ dependencies:
     sdk: flutter
   intl: ^0.20.2
   cupertino_icons: ^1.0.8
+  sqflite: ^2.4.2
+  path: ^1.9.1
+  path_provider: ^2.1.5
+  camera: ^0.12.0+1
+  # 13.x pulls permission_handler_android 14 which requires AGP 9 kotlin DSL.
+  permission_handler: 11.4.0
+  uuid: ^4.6.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  sqflite_common_ffi: ^2.3.7+1
 
 flutter:
   generate: true

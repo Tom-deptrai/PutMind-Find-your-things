@@ -389,4 +389,53 @@ class AppLocalizationsVi extends AppLocalizations {
   String lifetimeCardLocked(Object limit, Object price, Object used) {
     return 'Kỷ niệm không giới hạn · $price một lần · $used/$limit đã dùng';
   }
+
+  @override
+  String get cameraPermissionTitle => 'Cần quyền truy cập camera';
+
+  @override
+  String get cameraPermissionDenied =>
+      'PutMind cần camera để chụp món đồ bạn đang cất. Bạn có thể bật trong Cài đặt.';
+
+  @override
+  String get cameraPermissionRetry => 'Thử lại';
+
+  @override
+  String get cameraPermissionOpenSettings => 'Mở Cài đặt';
+
+  @override
+  String get cameraUnavailableTitle => 'Không dùng được camera';
+
+  @override
+  String get cameraUnavailableBody =>
+      'Không mở được camera trên thiết bị này. Vui lòng thử lại.';
+
+  @override
+  String get cameraWebMockHint =>
+      'Bản xem web dùng camera giả. Chạm nút chụp để tiếp tục.';
+
+  @override
+  String get captureReplaceTitle => 'Thay ảnh';
+
+  @override
+  String get replacePhotoConfirmTitle => 'Dùng ảnh này?';
+
+  @override
+  String get replacePhotoConfirmBody =>
+      'Ảnh của kỷ niệm này sẽ được thay. Nội dung transcript giữ nguyên.';
+
+  @override
+  String get replacePhotoUsePhoto => 'Dùng ảnh';
+
+  @override
+  String get savingMemory => 'Đang lưu…';
+
+  @override
+  String get photoReplaced => 'Đã thay ảnh';
+
+  @override
+  String get saveMemoryFailed => 'Không lưu được kỷ niệm. Vui lòng thử lại.';
+
+  @override
+  String get replacePhotoFailed => 'Không thay được ảnh. Vui lòng thử lại.';
 }

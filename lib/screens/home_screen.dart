@@ -67,13 +67,14 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       memory: memory,
       onEdit: () async {
+        final current = state.selectedMemory ?? memory;
         await showEditTranscriptDialog(
           context: context,
-          initialText: memory.transcript,
+          initialText: current.transcript,
           onSave: (text) => state.updateSelectedTranscript(text),
         );
       },
-      onReplacePhoto: state.mockReplacePhoto,
+      onReplacePhoto: () => state.openReplacePhoto(memory),
       onDelete: () async {
         final confirmed = await showDeleteMemoryDialog(context);
         if (confirmed == true) {
@@ -83,7 +84,11 @@ class _HomeScreenState extends State<HomeScreen> {
         state.cancelDelete();
       },
     );
-    state.closeMemoryDetail();
+    // Replace-photo navigates away to Capture; don't clear selection then.
+    if (state.route == AppRoute.home &&
+        state.captureMode != CaptureMode.replacePhoto) {
+      state.closeMemoryDetail();
+    }
   }
 
   @override
@@ -122,8 +127,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 HomeSearchBar(
                   controller: _searchController,
-                  onChanged: state.setSearchQuery,
-                  onMicPressed: state.mockVoiceSearch,
+                  onChanged: (q) {
+                    state.setSearchQuery(q);
+                  },
+                  onMicPressed: () {
+                    state.mockVoiceSearch();
+                  },
                 ),
                 Expanded(
                   child: memories.isEmpty

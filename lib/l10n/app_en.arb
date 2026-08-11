@@ -118,5 +118,20 @@
   "autoLockFiveMinutes": "After 5 minutes",
   "autoLockFifteenMinutes": "After 15 minutes",
   "never": "Never",
-  "lifetimeCardLocked": "Unlimited memories · {price} once · {used}/{limit} used"
+  "lifetimeCardLocked": "Unlimited memories · {price} once · {used}/{limit} used",
+  "cameraPermissionTitle": "Camera access needed",
+  "cameraPermissionDenied": "PutMind needs the camera to photograph what you’re putting away. You can enable it in Settings.",
+  "cameraPermissionRetry": "Try again",
+  "cameraPermissionOpenSettings": "Open Settings",
+  "cameraUnavailableTitle": "Camera unavailable",
+  "cameraUnavailableBody": "We couldn’t open the camera on this device. Please try again.",
+  "cameraWebMockHint": "Web preview uses a mock camera. Tap the shutter to continue.",
+  "captureReplaceTitle": "Replace photo",
+  "replacePhotoConfirmTitle": "Use this photo?",
+  "replacePhotoConfirmBody": "This replaces the photo for this memory. Your transcript stays the same.",
+  "replacePhotoUsePhoto": "Use photo",
+  "savingMemory": "Saving…",
+  "photoReplaced": "Photo replaced",
+  "saveMemoryFailed": "Couldn’t save this memory. Please try again.",
+  "replacePhotoFailed": "Couldn’t replace this photo. Please try again."
 }

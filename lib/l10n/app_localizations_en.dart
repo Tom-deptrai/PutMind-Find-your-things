@@ -387,4 +387,54 @@ class AppLocalizationsEn extends AppLocalizations {
   String lifetimeCardLocked(Object limit, Object price, Object used) {
     return 'Unlimited memories · $price once · $used/$limit used';
   }
+
+  @override
+  String get cameraPermissionTitle => 'Camera access needed';
+
+  @override
+  String get cameraPermissionDenied =>
+      'PutMind needs the camera to photograph what you’re putting away. You can enable it in Settings.';
+
+  @override
+  String get cameraPermissionRetry => 'Try again';
+
+  @override
+  String get cameraPermissionOpenSettings => 'Open Settings';
+
+  @override
+  String get cameraUnavailableTitle => 'Camera unavailable';
+
+  @override
+  String get cameraUnavailableBody =>
+      'We couldn’t open the camera on this device. Please try again.';
+
+  @override
+  String get cameraWebMockHint =>
+      'Web preview uses a mock camera. Tap the shutter to continue.';
+
+  @override
+  String get captureReplaceTitle => 'Replace photo';
+
+  @override
+  String get replacePhotoConfirmTitle => 'Use this photo?';
+
+  @override
+  String get replacePhotoConfirmBody =>
+      'This replaces the photo for this memory. Your transcript stays the same.';
+
+  @override
+  String get replacePhotoUsePhoto => 'Use photo';
+
+  @override
+  String get savingMemory => 'Saving…';
+
+  @override
+  String get photoReplaced => 'Photo replaced';
+
+  @override
+  String get saveMemoryFailed => 'Couldn’t save this memory. Please try again.';
+
+  @override
+  String get replacePhotoFailed =>
+      'Couldn’t replace this photo. Please try again.';
 }

@@ -3,26 +3,45 @@ import '../models/memory.dart';
 /// Free tier memory limit (Product Spec §31).
 const int kFreeMemoryLimit = 20;
 
-/// Contract for memory persistence. Step 1 uses an in-memory implementation.
+/// Contract for memory persistence.
+///
+/// UI/state talk only to this abstraction — never SQLite directly.
 abstract class MemoryRepository {
-  List<Memory> getAll();
-  Memory? getById(String id);
+  Future<List<Memory>> getAll();
+
+  Future<Memory?> getById(String id);
+
   Future<void> upsert(Memory memory);
+
   Future<void> delete(String id);
-  void replaceAll(List<Memory> memories);
-  void clear();
+
+  /// Case-insensitive partial transcript search.
+  ///
+  /// Results ordered by relevance, then newest first.
+  Future<List<Memory>> search(String query);
+
+  Future<void> replaceAll(List<Memory> memories);
+
+  Future<void> clear();
+
+  Future<void> close();
 }
 
+/// In-memory implementation used by tests and Flutter Web preview.
 class InMemoryMemoryRepository implements MemoryRepository {
   InMemoryMemoryRepository({List<Memory>? seed}) : _memories = [...?seed];
 
   final List<Memory> _memories;
 
   @override
-  List<Memory> getAll() => List.unmodifiable(_memories);
+  Future<List<Memory>> getAll() async {
+    final all = [..._memories];
+    all.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+    return List.unmodifiable(all);
+  }
 
   @override
-  Memory? getById(String id) {
+  Future<Memory?> getById(String id) async {
     for (final m in _memories) {
       if (m.id == id) return m;
     }
@@ -45,17 +64,49 @@ class InMemoryMemoryRepository implements MemoryRepository {
   }
 
   @override
-  void replaceAll(List<Memory> memories) {
+  Future<List<Memory>> search(String query) async {
+    final q = query.trim().toLowerCase();
+    if (q.isEmpty) return getAll();
+
+    final scored = <({Memory memory, int score})>[];
+    for (final m in _memories) {
+      final hay = '${m.transcript} ${m.title} ${m.location}'.toLowerCase();
+      if (!hay.contains(q) && !_fuzzyContains(hay, q)) continue;
+      final score = hay.contains(q) ? 2 : 1;
+      scored.add((memory: m, score: score));
+    }
+    scored.sort((a, b) {
+      final byScore = b.score.compareTo(a.score);
+      if (byScore != 0) return byScore;
+      return b.memory.updatedAt.compareTo(a.memory.updatedAt);
+    });
+    return scored.map((e) => e.memory).toList(growable: false);
+  }
+
+  @override
+  Future<void> replaceAll(List<Memory> memories) async {
     _memories
       ..clear()
       ..addAll(memories);
   }
 
   @override
-  void clear() => _memories.clear();
+  Future<void> clear() async => _memories.clear();
+
+  @override
+  Future<void> close() async {}
+
+  bool _fuzzyContains(String haystack, String needle) {
+    if (needle.length < 3) return false;
+    for (var i = 0; i < needle.length - 1; i++) {
+      final partial = needle.substring(0, i) + needle.substring(i + 1);
+      if (haystack.contains(partial)) return true;
+    }
+    return false;
+  }
 }
 
-/// Seed data matching the approved mobile.html prototype.
+/// Seed data matching the approved mobile.html prototype (UI review only).
 List<Memory> createSeedMemories({DateTime? now}) {
   final current = now ?? DateTime.now();
   return [
@@ -66,7 +117,7 @@ List<Memory> createSeedMemories({DateTime? now}) {
       displayLocation: 'Second drawer of the work desk',
       createdAt: DateTime(current.year, current.month, current.day, 8, 42),
       updatedAt: DateTime(current.year, current.month, current.day, 8, 42),
-      imageAssetKey: 'mock-1',
+      imagePath: null,
     ),
     Memory(
       id: 'seed-2',
@@ -79,7 +130,7 @@ List<Memory> createSeedMemories({DateTime? now}) {
       updatedAt: DateTime(current.year, current.month, current.day)
           .subtract(const Duration(days: 1))
           .add(const Duration(hours: 21, minutes: 18)),
-      imageAssetKey: 'mock-2',
+      imagePath: null,
     ),
     Memory(
       id: 'seed-3',
@@ -88,7 +139,7 @@ List<Memory> createSeedMemories({DateTime? now}) {
       displayLocation: 'Moving box 17',
       createdAt: DateTime(current.year, 8, 2, 16, 20),
       updatedAt: DateTime(current.year, 8, 2, 16, 20),
-      imageAssetKey: 'mock-3',
+      imagePath: null,
     ),
   ];
 }

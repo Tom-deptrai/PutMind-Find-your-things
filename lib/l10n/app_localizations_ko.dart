@@ -376,4 +376,50 @@ class AppLocalizationsKo extends AppLocalizations {
   String lifetimeCardLocked(Object limit, Object price, Object used) {
     return '무제한 메모리 · $price 1회 · $used/$limit 사용 중';
   }
+
+  @override
+  String get cameraPermissionTitle => '카메라 접근 필요';
+
+  @override
+  String get cameraPermissionDenied =>
+      'PutMind는 정리하는 물건을 촬영하기 위해 카메라가 필요합니다. 설정에서 켤 수 있습니다.';
+
+  @override
+  String get cameraPermissionRetry => '다시 시도';
+
+  @override
+  String get cameraPermissionOpenSettings => '설정 열기';
+
+  @override
+  String get cameraUnavailableTitle => '카메라를 사용할 수 없음';
+
+  @override
+  String get cameraUnavailableBody => '이 기기에서 카메라를 열 수 없습니다. 다시 시도해 주세요.';
+
+  @override
+  String get cameraWebMockHint => '웹 미리보기는 모의 카메라를 사용합니다. 셔터를 눌러 계속하세요.';
+
+  @override
+  String get captureReplaceTitle => '사진 교체';
+
+  @override
+  String get replacePhotoConfirmTitle => '이 사진을 사용할까요?';
+
+  @override
+  String get replacePhotoConfirmBody => '이 메모리의 사진을 교체합니다. 전사는 그대로 유지됩니다.';
+
+  @override
+  String get replacePhotoUsePhoto => '사진 사용';
+
+  @override
+  String get savingMemory => '저장 중…';
+
+  @override
+  String get photoReplaced => '사진이 교체됨';
+
+  @override
+  String get saveMemoryFailed => '메모리를 저장할 수 없습니다. 다시 시도해 주세요.';
+
+  @override
+  String get replacePhotoFailed => '사진을 교체할 수 없습니다. 다시 시도해 주세요.';
 }

@@ -1,7 +1,67 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/app_radius.dart';
+
+/// Renders a memory photo from local disk, or a prototype placeholder.
+class MemoryPhoto extends StatelessWidget {
+  const MemoryPhoto({
+    super.key,
+    this.imagePath,
+    this.height,
+    this.width,
+    this.borderRadius,
+    this.variant = 0,
+    this.fit = BoxFit.cover,
+  });
+
+  final String? imagePath;
+  final double? height;
+  final double? width;
+  final BorderRadius? borderRadius;
+  final int variant;
+  final BoxFit fit;
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = borderRadius ?? BorderRadius.circular(AppRadius.thumb);
+    final file = _resolveFile(imagePath);
+
+    if (file != null) {
+      return ClipRRect(
+        borderRadius: radius,
+        child: Image.file(
+          file,
+          height: height,
+          width: width,
+          fit: fit,
+          errorBuilder: (_, __, ___) => MemoryPhotoPlaceholder(
+            height: height,
+            borderRadius: radius,
+            variant: variant,
+          ),
+        ),
+      );
+    }
+
+    return MemoryPhotoPlaceholder(
+      height: height,
+      borderRadius: radius,
+      variant: variant,
+    );
+  }
+
+  File? _resolveFile(String? path) {
+    if (path == null || path.isEmpty || kIsWeb) return null;
+    if (path.startsWith('mock-')) return null;
+    final file = File(path);
+    if (!file.existsSync()) return null;
+    return file;
+  }
+}
 
 /// Placeholder photo matching the approved prototype gradients.
 class MemoryPhotoPlaceholder extends StatelessWidget {
@@ -34,54 +94,6 @@ class MemoryPhotoPlaceholder extends StatelessWidget {
           colors: colors,
         ),
       ),
-    );
-  }
-}
-
-class CapturePreviewPlaceholder extends StatelessWidget {
-  const CapturePreviewPlaceholder({super.key, this.captured = false});
-
-  final bool captured;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: captured
-              ? const [
-                  AppColors.capturePreviewStart,
-                  AppColors.capturePreviewMid,
-                  AppColors.capturePreviewEnd,
-                ]
-              : const [Color(0xFF1A221E), Color(0xFF3A4740), Color(0xFF6B7568)],
-          stops: const [0.0, 0.55, 1.0],
-        ),
-      ),
-      child: captured
-          ? null
-          : Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.photo_camera_outlined,
-                    size: 48,
-                    color: Colors.white.withValues(alpha: 0.75),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Camera preview (mock)',
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.8),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
     );
   }
 }

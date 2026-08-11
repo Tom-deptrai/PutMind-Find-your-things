@@ -829,6 +829,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unlimited memories · {price} once · {used}/{limit} used'**
   String lifetimeCardLocked(Object limit, Object price, Object used);
+
+  /// No description provided for @cameraPermissionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera access needed'**
+  String get cameraPermissionTitle;
+
+  /// No description provided for @cameraPermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'PutMind needs the camera to photograph what you’re putting away. You can enable it in Settings.'**
+  String get cameraPermissionDenied;
+
+  /// No description provided for @cameraPermissionRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get cameraPermissionRetry;
+
+  /// No description provided for @cameraPermissionOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings'**
+  String get cameraPermissionOpenSettings;
+
+  /// No description provided for @cameraUnavailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera unavailable'**
+  String get cameraUnavailableTitle;
+
+  /// No description provided for @cameraUnavailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn’t open the camera on this device. Please try again.'**
+  String get cameraUnavailableBody;
+
+  /// No description provided for @cameraWebMockHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Web preview uses a mock camera. Tap the shutter to continue.'**
+  String get cameraWebMockHint;
+
+  /// No description provided for @captureReplaceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace photo'**
+  String get captureReplaceTitle;
+
+  /// No description provided for @replacePhotoConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this photo?'**
+  String get replacePhotoConfirmTitle;
+
+  /// No description provided for @replacePhotoConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This replaces the photo for this memory. Your transcript stays the same.'**
+  String get replacePhotoConfirmBody;
+
+  /// No description provided for @replacePhotoUsePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Use photo'**
+  String get replacePhotoUsePhoto;
+
+  /// No description provided for @savingMemory.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving…'**
+  String get savingMemory;
+
+  /// No description provided for @photoReplaced.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo replaced'**
+  String get photoReplaced;
+
+  /// No description provided for @saveMemoryFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t save this memory. Please try again.'**
+  String get saveMemoryFailed;
+
+  /// No description provided for @replacePhotoFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t replace this photo. Please try again.'**
+  String get replacePhotoFailed;
 }
 
 class _AppLocalizationsDelegate
