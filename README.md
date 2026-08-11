@@ -3,16 +3,46 @@
 **PutMind: Find Your Things**  
 Snap it. Say where. Find it later.
 
-Flutter MVP foundation + complete UI (Step 1). Product source of truth: `DAC_TA_SAN_PHAM.md`. UI baseline: `mobile.html`.
+Flutter MVP through **Step 2 (Core Memory)**: UI, 10-language localization, SQLite persistence, local image storage, and real camera on Android/iOS. Product source of truth: `DAC_TA_SAN_PHAM.md`. UI baseline: `mobile.html`.
 
-## Run (mobile)
+## Running PutMind on a real Android device
+
+### Clone lần đầu
 
 ```bash
+git clone https://github.com/Tom-deptrai/PutMind-Find-your-things.git
+cd PutMind-Find-your-things
 flutter pub get
+```
+
+### Kiểm tra môi trường
+
+```bash
+flutter doctor
+flutter devices
+```
+
+On the Samsung phone: enable **Developer options** → **USB debugging**, then connect USB (or use wireless debugging). Accept the debugging prompt on the phone until it appears under `flutter devices`.
+
+### Chạy trên Samsung
+
+```bash
 flutter run
 ```
 
-Normal launch opens **Home** (or Unlock / Onboarding when those states are active).
+If more than one device is listed:
+
+```bash
+flutter run -d <device-id>
+```
+
+### Những lần Cursor cập nhật sau
+
+```bash
+git pull
+flutter pub get
+flutter run
+```
 
 ## Run (web / browser review)
 
@@ -21,9 +51,7 @@ flutter pub get
 flutter run -d chrome
 ```
 
-On a wide desktop browser window, PutMind stays inside a **mobile-sized frame** (430px, matching `mobile.html`) so the Step 1 UI is reviewable without stretching into a desktop layout.
-
-Production web build:
+On a wide desktop browser window, PutMind stays inside a **mobile-sized frame** (430px, matching `mobile.html`) so UI is reviewable without stretching into a desktop layout. Web uses an in-memory store and mock camera — native Android/iOS is the source of truth for Core Memory.
 
 ```bash
 flutter build web
@@ -33,18 +61,7 @@ Output: `build/web/`
 
 ## Prototype / Debug Navigator
 
-In **debug** builds only (including `flutter run -d chrome`), tap the **Prototype** button (bottom-right) to jump between:
-
-- Home
-- Capture
-- Settings
-- Unlock
-- Onboarding
-- Empty Home
-- Memory Detail
-- Paywall
-
-This control is not part of the PutMind product UI and does not appear in release builds (`kDebugMode` gated).
+In **debug** builds only, tap **Prototype** (bottom-right) to jump between Home, Capture, Settings, Unlock, Onboarding, Empty Home, Memory Detail, and Paywall. Not part of the product UI; hidden in release builds.
 
 ## Quality checks
 
@@ -54,9 +71,12 @@ dart format .
 flutter analyze
 flutter test
 flutter build apk --debug
-flutter build web
 ```
 
-## Step 1 scope
+Debug APK output: `build/app/outputs/flutter-apk/app-debug.apk`
 
-UI + in-memory/mock state for review. Native camera, speech-to-text, biometric, SQLite, billing, encrypted backup, and notifications are intentionally deferred to later steps. Web uses the same mocks.
+## Current MVP scope
+
+**Done:** Home / Capture / Search / Memory Detail CRUD, SQLite + local images, real camera, 10 languages.
+
+**Still mocked / later steps:** Speech-to-text, Voice Guidance audio, biometric/PIN App Lock, notifications, encrypted backup/restore, StoreKit / Play Billing.
