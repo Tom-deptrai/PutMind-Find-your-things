@@ -377,7 +377,7 @@ abstract class AppLocalizations {
   /// No description provided for @backupSheetBody.
   ///
   /// In en, this message translates to:
-  /// **'Encrypted backup connects in a later step. These actions are UI mocks for review.'**
+  /// **'Create an encrypted backup file you can save anywhere, or restore from a previous backup. The backup password is separate from App Lock PIN.'**
   String get backupSheetBody;
 
   /// No description provided for @createBackup.
@@ -391,6 +391,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Restore Backup'**
   String get restoreBackup;
+
+  /// No description provided for @backupPasswordCreateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set backup password'**
+  String get backupPasswordCreateTitle;
+
+  /// No description provided for @backupPasswordEnterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter backup password'**
+  String get backupPasswordEnterTitle;
+
+  /// No description provided for @backupPasswordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup password'**
+  String get backupPasswordLabel;
+
+  /// No description provided for @backupPasswordConfirmLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm password'**
+  String get backupPasswordConfirmLabel;
+
+  /// No description provided for @backupPasswordWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'If you forget this password, PutMind cannot recover the backup. There is no account reset.'**
+  String get backupPasswordWarning;
+
+  /// No description provided for @backupPasswordTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Use at least 4 characters.'**
+  String get backupPasswordTooShort;
+
+  /// No description provided for @backupPasswordMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match.'**
+  String get backupPasswordMismatch;
+
+  /// No description provided for @restoreConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace current memories?'**
+  String get restoreConfirmTitle;
+
+  /// No description provided for @restoreConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Restoring will replace memories on this device with the backup. This cannot be undone.'**
+  String get restoreConfirmBody;
+
+  /// No description provided for @snackBackupCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup created'**
+  String get snackBackupCreated;
+
+  /// No description provided for @snackBackupRestored.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup restored'**
+  String get snackBackupRestored;
+
+  /// No description provided for @snackBackupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup failed. Your current data was not changed.'**
+  String get snackBackupFailed;
+
+  /// No description provided for @snackBackupWrongPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong backup password.'**
+  String get snackBackupWrongPassword;
+
+  /// No description provided for @snackBackupCorrupted.
+  ///
+  /// In en, this message translates to:
+  /// **'This backup file is corrupted or incomplete.'**
+  String get snackBackupCorrupted;
+
+  /// No description provided for @snackBackupUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'This backup version isn’t supported.'**
+  String get snackBackupUnsupported;
+
+  /// No description provided for @snackBackupCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup cancelled.'**
+  String get snackBackupCancelled;
+
+  /// No description provided for @paywallPurchasePending.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing…'**
+  String get paywallPurchasePending;
+
+  /// No description provided for @snackLifetimeUnlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifetime unlocked'**
+  String get snackLifetimeUnlocked;
+
+  /// No description provided for @snackPurchaseRestored.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase restored'**
+  String get snackPurchaseRestored;
+
+  /// No description provided for @snackPurchaseRestoreNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No Lifetime purchase found for this account.'**
+  String get snackPurchaseRestoreNone;
+
+  /// No description provided for @snackPurchaseCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase cancelled.'**
+  String get snackPurchaseCancelled;
+
+  /// No description provided for @snackPurchaseFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase failed. Please try again.'**
+  String get snackPurchaseFailed;
+
+  /// No description provided for @snackPurchaseAlreadyOwned.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifetime already purchased.'**
+  String get snackPurchaseAlreadyOwned;
+
+  /// No description provided for @snackStoreUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Store is unavailable right now.'**
+  String get snackStoreUnavailable;
 
   /// No description provided for @privacyDialogTitle.
   ///
@@ -500,11 +644,89 @@ abstract class AppLocalizations {
   /// **'Enter PIN'**
   String get enterPin;
 
-  /// No description provided for @pinMockText.
+  /// No description provided for @pinUnlockHint.
   ///
   /// In en, this message translates to:
-  /// **'Step 1 mock: any 4 digits unlock.'**
-  String get pinMockText;
+  /// **'Enter your 4-digit App Lock PIN.'**
+  String get pinUnlockHint;
+
+  /// No description provided for @pinSetupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create App Lock PIN'**
+  String get pinSetupTitle;
+
+  /// No description provided for @pinConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm PIN'**
+  String get pinConfirmTitle;
+
+  /// No description provided for @pinMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'PINs did not match. Try again.'**
+  String get pinMismatch;
+
+  /// No description provided for @pinIncorrect.
+  ///
+  /// In en, this message translates to:
+  /// **'Incorrect PIN. Try again.'**
+  String get pinIncorrect;
+
+  /// No description provided for @photoViewerSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Memory photo, double-tap to zoom'**
+  String get photoViewerSemantics;
+
+  /// No description provided for @microphoneDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Microphone access is needed for voice. You can type instead.'**
+  String get microphoneDenied;
+
+  /// No description provided for @speechUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Speech recognition isn’t available. Type your memory instead.'**
+  String get speechUnavailable;
+
+  /// No description provided for @notificationPermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification permission is required for Daily Reminder.'**
+  String get notificationPermissionDenied;
+
+  /// No description provided for @biometricFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric unlock didn’t work. Try again or use your PIN.'**
+  String get biometricFailed;
+
+  /// No description provided for @biometricUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometrics aren’t available. Use your PIN to unlock.'**
+  String get biometricUnavailable;
+
+  /// No description provided for @snackAppLockEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'App Lock is on'**
+  String get snackAppLockEnabled;
+
+  /// No description provided for @dailyReminderNotificationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'PutMind'**
+  String get dailyReminderNotificationTitle;
+
+  /// No description provided for @dailyReminderNotificationBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Snap it. Say where. Find it later.'**
+  String get dailyReminderNotificationBody;
 
   /// No description provided for @onboardingSnapTitle.
   ///
@@ -650,72 +872,6 @@ abstract class AppLocalizations {
   /// **'Unlock Lifetime'**
   String get paywallUnlockLifetime;
 
-  /// No description provided for @prototype.
-  ///
-  /// In en, this message translates to:
-  /// **'Prototype'**
-  String get prototype;
-
-  /// No description provided for @prototypePreviewStates.
-  ///
-  /// In en, this message translates to:
-  /// **'Preview states'**
-  String get prototypePreviewStates;
-
-  /// No description provided for @prototypeHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Prototype controls only — not part of the PutMind MVP interface.'**
-  String get prototypeHint;
-
-  /// No description provided for @protoHome.
-  ///
-  /// In en, this message translates to:
-  /// **'Home'**
-  String get protoHome;
-
-  /// No description provided for @protoCapture.
-  ///
-  /// In en, this message translates to:
-  /// **'Capture'**
-  String get protoCapture;
-
-  /// No description provided for @protoSettings.
-  ///
-  /// In en, this message translates to:
-  /// **'Settings'**
-  String get protoSettings;
-
-  /// No description provided for @protoUnlock.
-  ///
-  /// In en, this message translates to:
-  /// **'Unlock'**
-  String get protoUnlock;
-
-  /// No description provided for @protoOnboarding.
-  ///
-  /// In en, this message translates to:
-  /// **'Onboarding'**
-  String get protoOnboarding;
-
-  /// No description provided for @protoEmptyHome.
-  ///
-  /// In en, this message translates to:
-  /// **'Empty Home'**
-  String get protoEmptyHome;
-
-  /// No description provided for @protoMemoryDetail.
-  ///
-  /// In en, this message translates to:
-  /// **'Memory Detail'**
-  String get protoMemoryDetail;
-
-  /// No description provided for @protoPaywall.
-  ///
-  /// In en, this message translates to:
-  /// **'Paywall'**
-  String get protoPaywall;
-
   /// No description provided for @snackMemorySaved.
   ///
   /// In en, this message translates to:
@@ -743,38 +899,14 @@ abstract class AppLocalizations {
   /// No description provided for @snackAppLockMockInfo.
   ///
   /// In en, this message translates to:
-  /// **'App Lock stores credentials securely in a later step. For now this is UI state.'**
+  /// **'App Lock uses biometrics with a local PIN fallback on this device.'**
   String get snackAppLockMockInfo;
 
   /// No description provided for @snackReminderSchedulingMock.
   ///
   /// In en, this message translates to:
-  /// **'Reminder scheduling will connect in a later step'**
+  /// **'Daily Reminder scheduled'**
   String get snackReminderSchedulingMock;
-
-  /// No description provided for @snackBackupCreatedMock.
-  ///
-  /// In en, this message translates to:
-  /// **'Backup created (mock)'**
-  String get snackBackupCreatedMock;
-
-  /// No description provided for @snackRestoreBackupMock.
-  ///
-  /// In en, this message translates to:
-  /// **'Restore will connect in a later step'**
-  String get snackRestoreBackupMock;
-
-  /// No description provided for @snackLifetimeUnlockedMock.
-  ///
-  /// In en, this message translates to:
-  /// **'Lifetime unlocked (mock purchase)'**
-  String get snackLifetimeUnlockedMock;
-
-  /// No description provided for @snackPurchaseRestoredMock.
-  ///
-  /// In en, this message translates to:
-  /// **'Purchase restored (mock)'**
-  String get snackPurchaseRestoredMock;
 
   /// No description provided for @today.
   ///

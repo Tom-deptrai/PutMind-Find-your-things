@@ -46,3 +46,14 @@ app.*.map.json
 
 # Android local SDK path
 **/local.properties
+
+# Local offline TTS tooling (do not commit weights/caches)
+tool/.tts_cache/
+tool/.venv*/
+tool/venv/
+**/__pycache__/
+*.onnx
+!assets/**/*.wav
+.qa_*/
+tmp_voice_*/
+docs/voice_guidance_license/listen/

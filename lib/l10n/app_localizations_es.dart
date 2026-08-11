@@ -146,13 +146,91 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get backupSheetBody =>
-      'La copia cifrada se conectará más adelante. Estas acciones son mocks de UI.';
+      'Crea una copia de seguridad cifrada para guardarla donde quieras, o restaura una anterior. La contraseña de copia es distinta del PIN de App Lock.';
 
   @override
   String get createBackup => 'Crear copia';
 
   @override
   String get restoreBackup => 'Restaurar copia';
+
+  @override
+  String get backupPasswordCreateTitle => 'Definir contraseña de copia';
+
+  @override
+  String get backupPasswordEnterTitle => 'Introducir contraseña de copia';
+
+  @override
+  String get backupPasswordLabel => 'Contraseña de copia';
+
+  @override
+  String get backupPasswordConfirmLabel => 'Confirmar contraseña';
+
+  @override
+  String get backupPasswordWarning =>
+      'Si olvidas esta contraseña, PutMind no puede recuperar la copia. No hay restablecimiento por cuenta.';
+
+  @override
+  String get backupPasswordTooShort => 'Usa al menos 4 caracteres.';
+
+  @override
+  String get backupPasswordMismatch => 'Las contraseñas no coinciden.';
+
+  @override
+  String get restoreConfirmTitle => '¿Reemplazar memorias actuales?';
+
+  @override
+  String get restoreConfirmBody =>
+      'Restaurar reemplazará las memorias de este dispositivo. No se puede deshacer.';
+
+  @override
+  String get snackBackupCreated => 'Copia creada';
+
+  @override
+  String get snackBackupRestored => 'Copia restaurada';
+
+  @override
+  String get snackBackupFailed =>
+      'Error al crear la copia. Tus datos actuales no cambiaron.';
+
+  @override
+  String get snackBackupWrongPassword => 'Contraseña de copia incorrecta.';
+
+  @override
+  String get snackBackupCorrupted =>
+      'Este archivo de copia está dañado o incompleto.';
+
+  @override
+  String get snackBackupUnsupported =>
+      'Esta versión de copia no es compatible.';
+
+  @override
+  String get snackBackupCancelled => 'Copia cancelada.';
+
+  @override
+  String get paywallPurchasePending => 'Procesando…';
+
+  @override
+  String get snackLifetimeUnlocked => 'Lifetime desbloqueado';
+
+  @override
+  String get snackPurchaseRestored => 'Compra restaurada';
+
+  @override
+  String get snackPurchaseRestoreNone =>
+      'No se encontró una compra Lifetime para esta cuenta.';
+
+  @override
+  String get snackPurchaseCancelled => 'Compra cancelada.';
+
+  @override
+  String get snackPurchaseFailed => 'Error en la compra. Inténtalo de nuevo.';
+
+  @override
+  String get snackPurchaseAlreadyOwned => 'Lifetime ya comprado.';
+
+  @override
+  String get snackStoreUnavailable => 'La tienda no está disponible ahora.';
 
   @override
   String get privacyDialogTitle => 'Privacidad';
@@ -213,7 +291,52 @@ class AppLocalizationsEs extends AppLocalizations {
   String get enterPin => 'Introduce PIN';
 
   @override
-  String get pinMockText => 'Mock del paso 1: cualquier 4 dígitos desbloquean.';
+  String get pinUnlockHint => 'Enter your 4-digit App Lock PIN.';
+
+  @override
+  String get pinSetupTitle => 'Create App Lock PIN';
+
+  @override
+  String get pinConfirmTitle => 'Confirm PIN';
+
+  @override
+  String get pinMismatch => 'PINs did not match. Try again.';
+
+  @override
+  String get pinIncorrect => 'Incorrect PIN. Try again.';
+
+  @override
+  String get photoViewerSemantics => 'Memory photo, double-tap to zoom';
+
+  @override
+  String get microphoneDenied =>
+      'Microphone access is needed for voice. You can type instead.';
+
+  @override
+  String get speechUnavailable =>
+      'Speech recognition isn\'t available. Type your memory instead.';
+
+  @override
+  String get notificationPermissionDenied =>
+      'Notification permission is required for Daily Reminder.';
+
+  @override
+  String get biometricFailed =>
+      'Biometric unlock didn\'t work. Try again or use your PIN.';
+
+  @override
+  String get biometricUnavailable =>
+      'Biometrics aren\'t available. Use your PIN to unlock.';
+
+  @override
+  String get snackAppLockEnabled => 'App Lock is on';
+
+  @override
+  String get dailyReminderNotificationTitle => 'PutMind';
+
+  @override
+  String get dailyReminderNotificationBody =>
+      'Snap it. Say where. Find it later.';
 
   @override
   String get onboardingSnapTitle => 'Hazlo ya.';
@@ -297,40 +420,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get paywallUnlockLifetime => 'Desbloquear Lifetime';
 
   @override
-  String get prototype => 'Prototipo';
-
-  @override
-  String get prototypePreviewStates => 'Ver estados';
-
-  @override
-  String get prototypeHint =>
-      'Solo controles de prototipo — no es parte de la interfaz MVP de PutMind.';
-
-  @override
-  String get protoHome => 'Inicio';
-
-  @override
-  String get protoCapture => 'Capture';
-
-  @override
-  String get protoSettings => 'Ajustes';
-
-  @override
-  String get protoUnlock => 'Desbloquear';
-
-  @override
-  String get protoOnboarding => 'Onboarding';
-
-  @override
-  String get protoEmptyHome => 'Inicio vacío';
-
-  @override
-  String get protoMemoryDetail => 'Detalle de memoria';
-
-  @override
-  String get protoPaywall => 'Paywall';
-
-  @override
   String get snackMemorySaved => 'Memoria guardada';
 
   @override
@@ -349,19 +438,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get snackReminderSchedulingMock =>
       'Los recordatorios se conectarán más adelante (mock)';
-
-  @override
-  String get snackBackupCreatedMock => 'Copia creada (mock)';
-
-  @override
-  String get snackRestoreBackupMock =>
-      'La restauración se conectará más adelante (mock)';
-
-  @override
-  String get snackLifetimeUnlockedMock => 'Lifetime desbloqueado (compra mock)';
-
-  @override
-  String get snackPurchaseRestoredMock => 'Compra restaurada (mock)';
 
   @override
   String get today => 'Hoy';

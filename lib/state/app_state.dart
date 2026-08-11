@@ -2,12 +2,21 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:uuid/uuid.dart';
 
 import '../models/memory.dart';
 import '../models/settings.dart';
+import '../services/backup_service.dart';
+import '../services/biometric_auth.dart';
 import '../services/image_storage.dart';
 import '../services/memory_repository.dart';
+import '../services/pin_store.dart';
+import '../services/purchase_service.dart';
+import '../services/reminder_service.dart';
+import '../services/settings_store.dart';
+import '../services/speech_service.dart';
+import '../services/voice_guidance_player.dart';
 
 enum AppRoute { home, capture, settings, unlock, onboarding }
 
@@ -15,45 +24,86 @@ enum CapturePhase { preview, guiding, listening, editing }
 
 enum CaptureMode { create, replacePhoto }
 
-/// App state for PutMind MVP.
-///
-/// Step 2: SQLite + local images + real camera capture paths.
-/// Voice / biometric / billing remain mocked until later steps.
+/// App state for PutMind MVP (Step 3: voice, lock, reminders, persistence).
 class AppState extends ChangeNotifier {
   AppState({
     required MemoryRepository repository,
     required ImageStorage imageStorage,
+    SettingsStore? settingsStore,
+    PinStore? pinStore,
+    SpeechService? speechService,
+    VoiceGuidancePlayer? voiceGuidancePlayer,
+    ReminderService? reminderService,
+    BiometricAuth? biometricAuth,
+    PurchaseService? purchaseService,
+    BackupService? backupService,
     AppSettings? settings,
   }) : _repository = repository,
        _imageStorage = imageStorage,
+       _settingsStore = settingsStore ?? SettingsStore(),
+       _pinStore = pinStore ?? PinStore(),
+       _speech = speechService ?? SpeechService(),
+       _voicePlayer = voiceGuidancePlayer ?? VoiceGuidancePlayer(),
+       _reminders = reminderService ?? ReminderService(),
+       _biometric = biometricAuth ?? BiometricAuth(),
+       _purchase = purchaseService ?? FakePurchaseService(isAvailable: false),
        _settings = settings ?? const AppSettings() {
-    if (!_settings.onboardingCompleted) {
-      _route = AppRoute.onboarding;
-    } else if (_settings.appLock) {
-      _isLocked = true;
-      _route = AppRoute.unlock;
-    }
+    _backup =
+        backupService ??
+        BackupService(repository: repository, imageStorage: imageStorage);
+    _applyLaunchRoute();
   }
 
-  /// Factory used by the real app entrypoint.
   static Future<AppState> create({
     MemoryRepository? repository,
     ImageStorage? imageStorage,
+    SettingsStore? settingsStore,
+    PinStore? pinStore,
+    SpeechService? speechService,
+    VoiceGuidancePlayer? voiceGuidancePlayer,
+    ReminderService? reminderService,
+    BiometricAuth? biometricAuth,
+    PurchaseService? purchaseService,
+    BackupService? backupService,
     AppSettings? settings,
   }) async {
+    final store = settingsStore ?? SettingsStore();
+    final loaded = settings ?? await store.load();
     final repo = repository ?? InMemoryMemoryRepository();
     final images = imageStorage ?? await ImageStorage.create();
+    final purchases = purchaseService ?? FakePurchaseService(isAvailable: false);
     final state = AppState(
       repository: repo,
       imageStorage: images,
-      settings: settings,
+      settingsStore: store,
+      pinStore: pinStore,
+      speechService: speechService,
+      voiceGuidancePlayer: voiceGuidancePlayer,
+      reminderService: reminderService,
+      biometricAuth: biometricAuth,
+      purchaseService: purchases,
+      backupService: backupService,
+      settings: loaded,
     );
     await state.reloadMemories();
+    await state._purchase.initialize();
+    if (loaded.dailyReminder) {
+      // Reschedule after restart — title/body filled by UI locale later via ensureReminder.
+      await state._reminders.initialize();
+    }
     return state;
   }
 
   final MemoryRepository _repository;
   final ImageStorage _imageStorage;
+  final SettingsStore _settingsStore;
+  final PinStore _pinStore;
+  final SpeechService _speech;
+  final VoiceGuidancePlayer _voicePlayer;
+  final ReminderService _reminders;
+  final BiometricAuth _biometric;
+  final PurchaseService _purchase;
+  late final BackupService _backup;
   static const _uuid = Uuid();
 
   AppSettings _settings;
@@ -81,6 +131,24 @@ class AppState extends ChangeNotifier {
   String _pinInput = '';
   String _snackMessage = '';
   String? _errorMessage;
+  String? _pinError;
+  bool _awaitingPinSetup = false;
+  String? _pinSetupFirst;
+  DateTime? _pausedAt;
+  bool _biometricAvailable = false;
+
+  // Reminder copy set by UI layer when scheduling (localized).
+  String reminderTitle = 'PutMind';
+  String reminderBody = 'Snap it. Say where. Find it later.';
+
+  void _applyLaunchRoute() {
+    if (!_settings.onboardingCompleted) {
+      _route = AppRoute.onboarding;
+    } else if (_settings.appLock) {
+      _isLocked = true;
+      _route = AppRoute.unlock;
+    }
+  }
 
   // --- Getters ---
 
@@ -105,6 +173,9 @@ class AppState extends ChangeNotifier {
   String get pinInput => _pinInput;
   String get snackMessage => _snackMessage;
   String? get errorMessage => _errorMessage;
+  String? get pinError => _pinError;
+  bool get awaitingPinSetup => _awaitingPinSetup;
+  bool get biometricAvailable => _biometricAvailable;
   int get memoryCount => _totalCount;
   bool get canAddMemory =>
       _settings.isLifetimeUnlocked || _totalCount < kFreeMemoryLimit;
@@ -112,10 +183,7 @@ class AppState extends ChangeNotifier {
       (_settings.isLifetimeUnlocked ? 999 : (kFreeMemoryLimit - _totalCount))
           .clamp(0, kFreeMemoryLimit);
 
-  List<Memory> get filteredMemories {
-    // Populated via [reloadMemories] / [setSearchQuery] from repository search.
-    return _memories;
-  }
+  List<Memory> get filteredMemories => _memories;
 
   Future<void> reloadMemories() async {
     final all = await _repository.getAll();
@@ -129,12 +197,54 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> _persistSettings() async {
+    await _settingsStore.save(_settings);
+  }
+
+  Future<void> refreshBiometricAvailability() async {
+    _biometricAvailable = await _biometric.isAvailable;
+    notifyListeners();
+  }
+
+  // --- Lifecycle / auto-lock ---
+
+  void onAppPaused() {
+    if (!_settings.appLock || _isLocked) return;
+    _pausedAt = DateTime.now();
+  }
+
+  void onAppResumed() {
+    if (!_settings.appLock || _isLocked) {
+      _pausedAt = null;
+      return;
+    }
+    final pausedAt = _pausedAt;
+    _pausedAt = null;
+    if (pausedAt == null) return;
+    final elapsed = DateTime.now().difference(pausedAt);
+    final limit = _settings.autoLock.duration;
+    if (elapsed >= limit) {
+      lockNow();
+    }
+  }
+
+  void lockNow() {
+    if (!_settings.appLock) return;
+    _isLocked = true;
+    _showPinFallback = false;
+    _pinInput = '';
+    _pinError = null;
+    _route = AppRoute.unlock;
+    unawaited(_speech.cancel());
+    unawaited(_voicePlayer.stop());
+    notifyListeners();
+  }
+
   // --- Navigation ---
 
   void goTo(AppRoute route) {
     _route = route;
     if (route == AppRoute.capture) {
-      // Keep replace mode if already set; otherwise reset for create.
       if (_captureMode == CaptureMode.create) {
         _resetCapture();
       }
@@ -146,6 +256,7 @@ class AppState extends ChangeNotifier {
     if (route != AppRoute.unlock) {
       _showPinFallback = false;
       _pinInput = '';
+      _pinError = null;
     }
     _dismissTransientOverlays(keepDetail: false);
     _errorMessage = null;
@@ -166,7 +277,6 @@ class AppState extends ChangeNotifier {
 
   void openSettings() => goTo(AppRoute.settings);
 
-  /// Opens Capture to replace the photo of [memory].
   void openReplacePhoto(Memory memory) {
     _selectedMemory = memory;
     _replaceMemoryId = memory.id;
@@ -202,22 +312,59 @@ class AppState extends ChangeNotifier {
     await reloadMemories();
   }
 
-  /// Step 2: voice search still mocked until speech lands in Step 3+.
-  Future<void> mockVoiceSearch() async {
-    await setSearchQuery('passport');
+  Future<void> startVoiceSearch() async {
+    if (kIsWeb) {
+      _snackMessage = 'speechUnavailable';
+      notifyListeners();
+      return;
+    }
+    final mic = await Permission.microphone.request();
+    if (!mic.isGranted) {
+      _snackMessage = 'microphoneDenied';
+      notifyListeners();
+      return;
+    }
+    final available = await _speech.initialize();
+    if (!available) {
+      _snackMessage = 'speechUnavailable';
+      notifyListeners();
+      return;
+    }
+    await _speech.listen(
+      localeId: _settings.language.speechToTextLocale,
+      onResult: (text) {
+        if (text.trim().isEmpty) return;
+        unawaited(setSearchQuery(text.trim()));
+      },
+      onStatus: (status) {
+        if (status == SpeechListenStatus.permissionDenied) {
+          _snackMessage = 'microphoneDenied';
+          notifyListeners();
+        } else if (status == SpeechListenStatus.unavailable ||
+            status == SpeechListenStatus.error) {
+          _snackMessage = 'speechUnavailable';
+          notifyListeners();
+        }
+      },
+      listenFor: const Duration(seconds: 8),
+    );
   }
+
+  /// Backward-compatible name used by older UI hooks.
+  Future<void> mockVoiceSearch() => startVoiceSearch();
 
   // --- Capture ---
 
   void _resetCapture() {
     _captureTimer?.cancel();
     _captureTimer = null;
+    unawaited(_speech.cancel());
+    unawaited(_voicePlayer.stop());
     _capturePhase = CapturePhase.preview;
     _captureTranscript = '';
     _captureImagePath = null;
   }
 
-  /// Called by CaptureScreen after a successful camera shutter.
   void onPhotoCaptured(String imagePath) {
     _captureTimer?.cancel();
     _captureImagePath = imagePath;
@@ -229,34 +376,81 @@ class AppState extends ChangeNotifier {
     if (_settings.voiceGuidance) {
       _capturePhase = CapturePhase.guiding;
       notifyListeners();
-      _captureTimer = Timer(const Duration(milliseconds: 900), () {
-        if (_capturePhase == CapturePhase.guiding) {
-          startListening();
-        }
-      });
+      unawaited(_playGuidanceThenListen());
     } else {
-      startListening();
+      unawaited(startListening());
     }
   }
 
-  /// Web / test helper: mark a photo as captured without a real camera file.
+  Future<void> _playGuidanceThenListen() async {
+    await _voicePlayer.play(_settings.language);
+    if (_capturePhase == CapturePhase.guiding) {
+      await startListening();
+    }
+  }
+
   void takePhoto({String? mockImagePath}) {
     onPhotoCaptured(mockImagePath ?? 'mock-captured');
   }
 
-  void startListening() {
+  Future<void> startListening() async {
     _captureTimer?.cancel();
     _capturePhase = CapturePhase.listening;
     notifyListeners();
-    // Mock speech-to-text until Step 3.
-    _captureTimer = Timer(const Duration(milliseconds: 1400), () {
-      if (_capturePhase == CapturePhase.listening &&
-          _captureTranscript.trim().isEmpty) {
-        _captureTranscript = 'Passport, in the second drawer of my work desk.';
-        _capturePhase = CapturePhase.editing;
+
+    if (kIsWeb || Platform.environment.containsKey('FLUTTER_TEST')) {
+      // Tests / web: brief delay then leave empty for keyboard fallback.
+      _captureTimer = Timer(const Duration(milliseconds: 400), () {
+        if (_capturePhase == CapturePhase.listening) {
+          _capturePhase = CapturePhase.editing;
+          notifyListeners();
+        }
+      });
+      return;
+    }
+
+    final mic = await Permission.microphone.request();
+    if (!mic.isGranted) {
+      _snackMessage = 'microphoneDenied';
+      _capturePhase = CapturePhase.editing;
+      notifyListeners();
+      return;
+    }
+
+    final available = await _speech.initialize();
+    if (!available) {
+      _snackMessage = 'speechUnavailable';
+      _capturePhase = CapturePhase.editing;
+      notifyListeners();
+      return;
+    }
+
+    await _speech.listen(
+      localeId: _settings.language.speechToTextLocale,
+      onResult: (text) {
+        if (_capturePhase != CapturePhase.listening &&
+            _capturePhase != CapturePhase.editing) {
+          return;
+        }
+        _captureTranscript = text;
         notifyListeners();
-      }
-    });
+      },
+      onStatus: (status) {
+        if (status == SpeechListenStatus.done) {
+          _capturePhase = CapturePhase.editing;
+          notifyListeners();
+        } else if (status == SpeechListenStatus.permissionDenied) {
+          _snackMessage = 'microphoneDenied';
+          _capturePhase = CapturePhase.editing;
+          notifyListeners();
+        } else if (status == SpeechListenStatus.unavailable ||
+            status == SpeechListenStatus.error) {
+          _snackMessage = 'speechUnavailable';
+          _capturePhase = CapturePhase.editing;
+          notifyListeners();
+        }
+      },
+    );
   }
 
   void setCaptureTranscript(String value) {
@@ -264,6 +458,7 @@ class AppState extends ChangeNotifier {
     if (hasCapturedPhoto && value.trim().isNotEmpty) {
       _captureTimer?.cancel();
       _captureTimer = null;
+      unawaited(_speech.stop());
       _capturePhase = CapturePhase.editing;
     }
     notifyListeners();
@@ -273,7 +468,6 @@ class AppState extends ChangeNotifier {
     final previous = _captureImagePath;
     _resetCapture();
     notifyListeners();
-    // Best-effort cleanup of temp capture if it was under managed storage.
     if (previous != null && !previous.startsWith('mock-')) {
       unawaited(_imageStorage.deleteImage(previous));
     }
@@ -282,6 +476,8 @@ class AppState extends ChangeNotifier {
   @override
   void dispose() {
     _captureTimer?.cancel();
+    unawaited(_speech.cancel());
+    unawaited(_voicePlayer.dispose());
     unawaited(_repository.close());
     super.dispose();
   }
@@ -398,7 +594,6 @@ class AppState extends ChangeNotifier {
     }
     final file = File(sourcePath);
     if (!await file.exists()) {
-      // Allow tests that pass a synthetic path.
       return sourcePath;
     }
     return _imageStorage.persistCapturedImage(sourcePath, id: id);
@@ -423,13 +618,16 @@ class AppState extends ChangeNotifier {
   Future<void> updateSelectedTranscript(String transcript) async {
     final selected = _selectedMemory;
     if (selected == null) return;
+    final trimmed = transcript.trim();
+    if (trimmed.isEmpty) return;
     final updated = selected.copyWith(
-      transcript: transcript.trim(),
+      transcript: trimmed,
       updatedAt: DateTime.now(),
     );
     await _repository.upsert(updated);
     await reloadMemories();
-    _selectedMemory = updated;
+    _selectedMemory =
+        _memories.where((m) => m.id == updated.id).firstOrNull ?? updated;
     _snackMessage = 'snackMemoryUpdated';
     notifyListeners();
   }
@@ -459,106 +657,319 @@ class AppState extends ChangeNotifier {
 
   // --- Settings ---
 
-  void setLanguage(AppLanguage language) {
+  Future<void> setLanguage(AppLanguage language) async {
     _settings = _settings.copyWith(language: language);
+    await _persistSettings();
+    if (_settings.dailyReminder) {
+      await ensureReminderScheduled();
+    }
     notifyListeners();
   }
 
-  void setVoiceGuidance(bool value) {
+  Future<void> setVoiceGuidance(bool value) async {
     _settings = _settings.copyWith(voiceGuidance: value);
+    await _persistSettings();
     notifyListeners();
   }
 
-  void setDailyReminder(bool value) {
-    _settings = _settings.copyWith(dailyReminder: value);
+  /// Returns false if notification permission was denied.
+  Future<bool> setDailyReminder(bool value) async {
     if (value) {
-      _snackMessage = 'snackReminderSchedulingMock';
+      final ok = await _reminders.requestPermission();
+      if (!ok) {
+        _snackMessage = 'notificationPermissionDenied';
+        notifyListeners();
+        return false;
+      }
+      _settings = _settings.copyWith(dailyReminder: true);
+      await _persistSettings();
+      await ensureReminderScheduled();
+      notifyListeners();
+      return true;
     }
+    _settings = _settings.copyWith(dailyReminder: false);
+    await _persistSettings();
+    await _reminders.cancel();
     notifyListeners();
+    return true;
   }
 
-  void setReminderTime(int hour, int minute) {
+  Future<void> setReminderTime(int hour, int minute) async {
     _settings = _settings.copyWith(reminderHour: hour, reminderMinute: minute);
-    notifyListeners();
-  }
-
-  void setAppLock(bool value) {
-    _settings = _settings.copyWith(appLock: value);
-    if (value) {
-      _snackMessage = 'snackAppLockMockInfo';
+    await _persistSettings();
+    if (_settings.dailyReminder) {
+      await ensureReminderScheduled();
     }
     notifyListeners();
   }
 
-  void setAutoLock(AutoLockInterval interval) {
+  Future<void> ensureReminderScheduled() async {
+    if (!_settings.dailyReminder) return;
+    await _reminders.scheduleDaily(
+      hour: _settings.reminderHour,
+      minute: _settings.reminderMinute,
+      title: reminderTitle,
+      body: reminderBody,
+    );
+  }
+
+  /// Begin enabling App Lock — caller should collect a new PIN via [submitPinSetupDigit].
+  Future<void> beginEnableAppLock() async {
+    _awaitingPinSetup = true;
+    _pinSetupFirst = null;
+    _pinInput = '';
+    _pinError = null;
+    notifyListeners();
+  }
+
+  void cancelPinSetup() {
+    _awaitingPinSetup = false;
+    _pinSetupFirst = null;
+    _pinInput = '';
+    _pinError = null;
+    notifyListeners();
+  }
+
+  Future<bool> submitPinSetupDigit(String digit) async {
+    if (!_awaitingPinSetup) return false;
+    if (_pinInput.length >= 4) return false;
+    _pinInput += digit;
+    _pinError = null;
+    notifyListeners();
+    if (_pinInput.length < 4) return false;
+
+    final entered = _pinInput;
+    _pinInput = '';
+    if (_pinSetupFirst == null) {
+      _pinSetupFirst = entered;
+      notifyListeners();
+      return false;
+    }
+    if (_pinSetupFirst != entered) {
+      _pinError = 'pinMismatch';
+      _pinSetupFirst = null;
+      notifyListeners();
+      return false;
+    }
+    await _pinStore.setPin(entered);
+    _awaitingPinSetup = false;
+    _pinSetupFirst = null;
+    _settings = _settings.copyWith(appLock: true);
+    await _persistSettings();
+    await refreshBiometricAvailability();
+    _snackMessage = 'snackAppLockEnabled';
+    notifyListeners();
+    return true;
+  }
+
+  bool get pinSetupConfirming => _awaitingPinSetup && _pinSetupFirst != null;
+
+  Future<void> setAppLock(bool value) async {
+    if (!value) {
+      _settings = _settings.copyWith(appLock: false);
+      _isLocked = false;
+      await _persistSettings();
+      // Keep PIN stored so re-enable can reuse or user can reset later.
+      notifyListeners();
+      return;
+    }
+    final hasPin = await _pinStore.hasPin();
+    if (hasPin) {
+      _settings = _settings.copyWith(appLock: true);
+      await _persistSettings();
+      await refreshBiometricAvailability();
+      notifyListeners();
+      return;
+    }
+    await beginEnableAppLock();
+  }
+
+  Future<void> setAutoLock(AutoLockInterval interval) async {
     _settings = _settings.copyWith(autoLock: interval);
+    await _persistSettings();
     notifyListeners();
   }
 
-  void mockCreateBackup() {
-    _settings = _settings.copyWith(lastBackupAt: DateTime.now());
-    _snackMessage = 'snackBackupCreatedMock';
-    notifyListeners();
+  PurchaseService get purchaseService => _purchase;
+  BackupService get backupService => _backup;
+
+  /// Creates encrypted backup bytes (caller shares/saves the file).
+  Future<Uint8List?> exportBackupBytes(String password) async {
+    try {
+      final bytes = await _backup.createBackupBytes(password);
+      _settings = _settings.copyWith(lastBackupAt: DateTime.now());
+      await _persistSettings();
+      _snackMessage = 'snackBackupCreated';
+      notifyListeners();
+      return bytes;
+    } on BackupException catch (e) {
+      _snackMessage = switch (e.reason) {
+        BackupFailureReason.wrongPassword => 'snackBackupWrongPassword',
+        BackupFailureReason.corrupted => 'snackBackupCorrupted',
+        BackupFailureReason.unsupportedVersion => 'snackBackupUnsupported',
+        BackupFailureReason.cancelled => 'snackBackupCancelled',
+        _ => 'snackBackupFailed',
+      };
+      notifyListeners();
+      return null;
+    } catch (_) {
+      _snackMessage = 'snackBackupFailed';
+      notifyListeners();
+      return null;
+    }
   }
 
-  void mockRestoreBackup() {
-    _snackMessage = 'snackRestoreBackupMock';
-    notifyListeners();
+  /// Restores from an encrypted backup file. Does not update Last Backup.
+  Future<bool> restoreBackupFromPath({
+    required String path,
+    required String password,
+  }) async {
+    try {
+      await _backup.restoreFromFile(filePath: path, password: password);
+      await reloadMemories();
+      _snackMessage = 'snackBackupRestored';
+      notifyListeners();
+      return true;
+    } on BackupException catch (e) {
+      _snackMessage = switch (e.reason) {
+        BackupFailureReason.wrongPassword => 'snackBackupWrongPassword',
+        BackupFailureReason.corrupted => 'snackBackupCorrupted',
+        BackupFailureReason.unsupportedVersion => 'snackBackupUnsupported',
+        BackupFailureReason.cancelled => 'snackBackupCancelled',
+        BackupFailureReason.missingData => 'snackBackupCorrupted',
+        BackupFailureReason.ioError => 'snackBackupFailed',
+      };
+      notifyListeners();
+      return false;
+    } catch (_) {
+      _snackMessage = 'snackBackupFailed';
+      notifyListeners();
+      return false;
+    }
   }
 
-  void unlockLifetime() {
+  /// Grants lifetime entitlement after a verified store purchase/restore.
+  Future<void> grantLifetimeEntitlement({
+    String snackKey = 'snackLifetimeUnlocked',
+  }) async {
     _settings = _settings.copyWith(isLifetimeUnlocked: true);
+    await _persistSettings();
     _showPaywall = false;
-    _snackMessage = 'snackLifetimeUnlockedMock';
+    _snackMessage = snackKey;
     notifyListeners();
   }
 
-  void mockRestorePurchase() {
-    _settings = _settings.copyWith(isLifetimeUnlocked: true);
-    _snackMessage = 'snackPurchaseRestoredMock';
-    notifyListeners();
+  /// Test/debug helper — prefer [purchaseLifetime] in production UI.
+  Future<void> unlockLifetime() => grantLifetimeEntitlement();
+
+  Future<PurchasePhase> purchaseLifetime() async {
+    await _purchase.buyLifetime();
+    final phase = _purchase.phase;
+    if (phase == PurchasePhase.success ||
+        phase == PurchasePhase.alreadyPurchased) {
+      await grantLifetimeEntitlement(
+        snackKey: phase == PurchasePhase.alreadyPurchased
+            ? 'snackPurchaseAlreadyOwned'
+            : 'snackLifetimeUnlocked',
+      );
+    } else {
+      _snackMessage = switch (phase) {
+        PurchasePhase.cancelled => 'snackPurchaseCancelled',
+        PurchasePhase.storeUnavailable => 'snackStoreUnavailable',
+        PurchasePhase.failed => 'snackPurchaseFailed',
+        _ => 'snackPurchaseFailed',
+      };
+      notifyListeners();
+    }
+    return phase;
   }
 
-  void completeOnboarding() {
+  Future<PurchasePhase> restorePurchases() async {
+    await _purchase.restorePurchases();
+    final phase = _purchase.phase;
+    if (phase == PurchasePhase.success ||
+        phase == PurchasePhase.alreadyPurchased) {
+      await grantLifetimeEntitlement(snackKey: 'snackPurchaseRestored');
+    } else if (phase == PurchasePhase.restoreNone) {
+      _snackMessage = 'snackPurchaseRestoreNone';
+      notifyListeners();
+    } else {
+      _snackMessage = switch (phase) {
+        PurchasePhase.cancelled => 'snackPurchaseCancelled',
+        PurchasePhase.storeUnavailable => 'snackStoreUnavailable',
+        _ => 'snackPurchaseFailed',
+      };
+      notifyListeners();
+    }
+    return phase;
+  }
+
+  Future<void> completeOnboarding() async {
     _settings = _settings.copyWith(onboardingCompleted: true);
+    await _persistSettings();
     _route = AppRoute.home;
     notifyListeners();
   }
 
   // --- Unlock ---
 
-  void unlockWithBiometrics() {
-    _isLocked = false;
-    _showPinFallback = false;
-    _pinInput = '';
-    _route = AppRoute.home;
-    notifyListeners();
+  Future<void> unlockWithBiometrics() async {
+    final ok = await _biometric.authenticate(localizedReason: 'Unlock PutMind');
+    if (!ok) {
+      _snackMessage = 'biometricFailed';
+      notifyListeners();
+      return;
+    }
+    _finishUnlock();
   }
 
   void showPinEntry() {
     _showPinFallback = true;
     _pinInput = '';
+    _pinError = null;
     notifyListeners();
   }
 
   void hidePinEntry() {
     _showPinFallback = false;
     _pinInput = '';
+    _pinError = null;
     notifyListeners();
   }
 
-  void appendPinDigit(String digit) {
+  Future<void> appendPinDigit(String digit) async {
+    if (_awaitingPinSetup) {
+      await submitPinSetupDigit(digit);
+      return;
+    }
     if (_pinInput.length >= 4) return;
     _pinInput += digit;
+    _pinError = null;
     notifyListeners();
     if (_pinInput.length == 4) {
-      unlockWithBiometrics();
+      final ok = await _pinStore.verifyPin(_pinInput);
+      if (ok) {
+        _finishUnlock();
+      } else {
+        _pinError = 'pinIncorrect';
+        _pinInput = '';
+        notifyListeners();
+      }
     }
   }
 
   void deletePinDigit() {
     if (_pinInput.isEmpty) return;
     _pinInput = _pinInput.substring(0, _pinInput.length - 1);
+    notifyListeners();
+  }
+
+  void _finishUnlock() {
+    _isLocked = false;
+    _showPinFallback = false;
+    _pinInput = '';
+    _pinError = null;
+    _route = AppRoute.home;
     notifyListeners();
   }
 
@@ -582,61 +993,6 @@ class AppState extends ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
   }
-
-  // --- Prototype / debug helpers ---
-
-  Future<void> prototypeShowEmptyHome() async {
-    await _repository.clear();
-    _searchQuery = '';
-    _isLocked = false;
-    _route = AppRoute.home;
-    _dismissTransientOverlays(keepDetail: false);
-    await reloadMemories();
-  }
-
-  Future<void> prototypeRestoreDemoMemories() async {
-    await _repository.replaceAll(createSeedMemories());
-    _isLocked = false;
-    _route = AppRoute.home;
-    _dismissTransientOverlays(keepDetail: false);
-    await reloadMemories();
-  }
-
-  void prototypeShowOnboarding() {
-    _settings = _settings.copyWith(onboardingCompleted: false);
-    _isLocked = false;
-    _route = AppRoute.onboarding;
-    _dismissTransientOverlays(keepDetail: false);
-    notifyListeners();
-  }
-
-  void prototypeShowUnlock() {
-    _settings = _settings.copyWith(appLock: true);
-    _isLocked = true;
-    _route = AppRoute.unlock;
-    _dismissTransientOverlays(keepDetail: false);
-    notifyListeners();
-  }
-
-  Future<void> prototypeShowMemoryDetail() async {
-    if (_memories.isEmpty) {
-      await prototypeRestoreDemoMemories();
-    }
-    _route = AppRoute.home;
-    _isLocked = false;
-    openMemoryDetail(_memories.first);
-  }
-
-  void prototypeShowPaywall() {
-    _route = AppRoute.home;
-    _isLocked = false;
-    _showPaywall = true;
-    _showMemoryDetail = false;
-    _showDeleteConfirm = false;
-    notifyListeners();
-  }
-
-  // --- Internals ---
 
   void _dismissTransientOverlays({required bool keepDetail}) {
     _showPaywall = false;

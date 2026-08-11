@@ -187,7 +187,7 @@ class _CaptureScreenState extends State<CaptureScreen>
   Future<void> _save() async {
     final ok = await state.saveMemory();
     if (!ok && state.showPaywall && mounted) {
-      await showPaywallDialog(context: context, onUnlock: state.unlockLifetime);
+      await showPaywallDialog(context: context, state: state);
       state.hidePaywall();
     }
   }

@@ -59,10 +59,6 @@ flutter build web
 
 Output: `build/web/`
 
-## Prototype / Debug Navigator
-
-In **debug** builds only, tap **Prototype** (bottom-right) to jump between Home, Capture, Settings, Unlock, Onboarding, Empty Home, Memory Detail, and Paywall. Not part of the product UI; hidden in release builds.
-
 ## Quality checks
 
 ```bash
@@ -77,6 +73,6 @@ Debug APK output: `build/app/outputs/flutter-apk/app-debug.apk`
 
 ## Current MVP scope
 
-**Done:** Home / Capture / Search / Memory Detail CRUD, SQLite + local images, real camera, 10 languages.
+**Done (through Step 3):** Home / Capture / Search / Memory Detail CRUD, SQLite + local images, real camera, speech-to-text, voice guidance playback, daily reminder notifications, App Lock (biometric + PIN) + auto-lock, settings persistence, fullscreen photo viewer, 10 languages.
 
-**Still mocked / later steps:** Speech-to-text, Voice Guidance audio, biometric/PIN App Lock, notifications, encrypted backup/restore, StoreKit / Play Billing.
+**Still mocked / later steps:** Backup encryption & restore, StoreKit / Play Billing Lifetime purchase.

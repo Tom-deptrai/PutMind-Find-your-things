@@ -144,13 +144,89 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get backupSheetBody =>
-      'Sao lưu được mã hóa sẽ kết nối ở bước sau. Các nút này là bản mô phỏng giao diện để bạn xem.';
+      'Tạo tệp sao lưu mã hóa để lưu ở bất kỳ đâu, hoặc khôi phục từ bản sao lưu trước. Mật khẩu sao lưu tách biệt với mã PIN App Lock.';
 
   @override
   String get createBackup => 'Tạo bản sao lưu';
 
   @override
   String get restoreBackup => 'Khôi phục bản sao lưu';
+
+  @override
+  String get backupPasswordCreateTitle => 'Đặt mật khẩu sao lưu';
+
+  @override
+  String get backupPasswordEnterTitle => 'Nhập mật khẩu sao lưu';
+
+  @override
+  String get backupPasswordLabel => 'Mật khẩu sao lưu';
+
+  @override
+  String get backupPasswordConfirmLabel => 'Xác nhận mật khẩu';
+
+  @override
+  String get backupPasswordWarning =>
+      'Nếu quên mật khẩu này, PutMind không thể khôi phục bản sao lưu. Không có tài khoản để đặt lại.';
+
+  @override
+  String get backupPasswordTooShort => 'Dùng ít nhất 4 ký tự.';
+
+  @override
+  String get backupPasswordMismatch => 'Mật khẩu không khớp.';
+
+  @override
+  String get restoreConfirmTitle => 'Thay thế memories hiện tại?';
+
+  @override
+  String get restoreConfirmBody =>
+      'Khôi phục sẽ thay memories trên máy này bằng bản sao lưu. Không hoàn tác được.';
+
+  @override
+  String get snackBackupCreated => 'Đã tạo bản sao lưu';
+
+  @override
+  String get snackBackupRestored => 'Đã khôi phục bản sao lưu';
+
+  @override
+  String get snackBackupFailed =>
+      'Sao lưu thất bại. Dữ liệu hiện tại không đổi.';
+
+  @override
+  String get snackBackupWrongPassword => 'Sai mật khẩu sao lưu.';
+
+  @override
+  String get snackBackupCorrupted => 'Tệp sao lưu bị hỏng hoặc thiếu dữ liệu.';
+
+  @override
+  String get snackBackupUnsupported => 'Phiên bản sao lưu không được hỗ trợ.';
+
+  @override
+  String get snackBackupCancelled => 'Đã hủy sao lưu.';
+
+  @override
+  String get paywallPurchasePending => 'Đang xử lý…';
+
+  @override
+  String get snackLifetimeUnlocked => 'Đã mở khóa Lifetime';
+
+  @override
+  String get snackPurchaseRestored => 'Đã khôi phục giao dịch';
+
+  @override
+  String get snackPurchaseRestoreNone =>
+      'Không tìm thấy giao dịch Lifetime cho tài khoản này.';
+
+  @override
+  String get snackPurchaseCancelled => 'Đã hủy mua.';
+
+  @override
+  String get snackPurchaseFailed => 'Mua thất bại. Thử lại.';
+
+  @override
+  String get snackPurchaseAlreadyOwned => 'Lifetime đã được mua.';
+
+  @override
+  String get snackStoreUnavailable => 'Cửa hàng hiện không khả dụng.';
 
   @override
   String get privacyDialogTitle => 'Quyền riêng tư';
@@ -211,8 +287,52 @@ class AppLocalizationsVi extends AppLocalizations {
   String get enterPin => 'Nhập PIN';
 
   @override
-  String get pinMockText =>
-      'Bản mô phỏng Step 1: bất kỳ 4 chữ số nào cũng mở khóa được.';
+  String get pinUnlockHint => 'Enter your 4-digit App Lock PIN.';
+
+  @override
+  String get pinSetupTitle => 'Create App Lock PIN';
+
+  @override
+  String get pinConfirmTitle => 'Confirm PIN';
+
+  @override
+  String get pinMismatch => 'PINs did not match. Try again.';
+
+  @override
+  String get pinIncorrect => 'Incorrect PIN. Try again.';
+
+  @override
+  String get photoViewerSemantics => 'Memory photo, double-tap to zoom';
+
+  @override
+  String get microphoneDenied =>
+      'Microphone access is needed for voice. You can type instead.';
+
+  @override
+  String get speechUnavailable =>
+      'Speech recognition isn\'t available. Type your memory instead.';
+
+  @override
+  String get notificationPermissionDenied =>
+      'Notification permission is required for Daily Reminder.';
+
+  @override
+  String get biometricFailed =>
+      'Biometric unlock didn\'t work. Try again or use your PIN.';
+
+  @override
+  String get biometricUnavailable =>
+      'Biometrics aren\'t available. Use your PIN to unlock.';
+
+  @override
+  String get snackAppLockEnabled => 'App Lock is on';
+
+  @override
+  String get dailyReminderNotificationTitle => 'PutMind';
+
+  @override
+  String get dailyReminderNotificationBody =>
+      'Snap it. Say where. Find it later.';
 
   @override
   String get onboardingSnapTitle => 'Chụp nhanh.';
@@ -296,40 +416,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get paywallUnlockLifetime => 'Mở khóa Lifetime';
 
   @override
-  String get prototype => 'Prototype';
-
-  @override
-  String get prototypePreviewStates => 'Xem trạng thái';
-
-  @override
-  String get prototypeHint =>
-      'Chỉ dùng cho prototype — không thuộc giao diện MVP của PutMind.';
-
-  @override
-  String get protoHome => 'Home';
-
-  @override
-  String get protoCapture => 'Capture';
-
-  @override
-  String get protoSettings => 'Cài đặt';
-
-  @override
-  String get protoUnlock => 'Mở khóa';
-
-  @override
-  String get protoOnboarding => 'Onboarding';
-
-  @override
-  String get protoEmptyHome => 'Empty Home';
-
-  @override
-  String get protoMemoryDetail => 'Memory Detail';
-
-  @override
-  String get protoPaywall => 'Paywall';
-
-  @override
   String get snackMemorySaved => 'Đã lưu kỷ niệm';
 
   @override
@@ -348,18 +434,6 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get snackReminderSchedulingMock =>
       'Việc nhắc nhở sẽ kết nối ở bước sau (mock)';
-
-  @override
-  String get snackBackupCreatedMock => 'Đã tạo bản sao lưu (mock)';
-
-  @override
-  String get snackRestoreBackupMock => 'Khôi phục sẽ kết nối ở bước sau (mock)';
-
-  @override
-  String get snackLifetimeUnlockedMock => 'Đã mở Lifetime (mock purchase)';
-
-  @override
-  String get snackPurchaseRestoredMock => 'Đã khôi phục giao dịch (mock)';
 
   @override
   String get today => 'Hôm nay';

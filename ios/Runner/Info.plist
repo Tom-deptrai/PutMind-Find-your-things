@@ -47,5 +47,15 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>PutMind needs camera access to photograph items you put away.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>PutMind needs the microphone so you can say what something is and where you put it.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>PutMind uses on-device speech recognition to turn your words into a searchable memory.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>PutMind uses Face ID to unlock your private memories on this device.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+	</array>
 </dict>
 </plist>

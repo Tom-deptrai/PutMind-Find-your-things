@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../l10n/app_localizations.dart';
 import '../state/app_state.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_radius.dart';
 import '../theme/app_typography.dart';
-import '../l10n/app_localizations.dart';
 
 class UnlockScreen extends StatelessWidget {
   const UnlockScreen({super.key, required this.state});
@@ -47,6 +47,7 @@ class _BiometricUnlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       children: [
         const Spacer(flex: 2),
@@ -64,35 +65,39 @@ class _BiometricUnlock extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 20),
-        Text(
-          AppLocalizations.of(context)!.unlockTitle,
-          style: AppTypography.unlockTitle,
-        ),
+        Text(l10n.unlockTitle, style: AppTypography.unlockTitle),
         const SizedBox(height: 7),
         Text(
-          AppLocalizations.of(context)!.unlockSubtitle,
+          l10n.unlockSubtitle,
           style: AppTypography.body,
           textAlign: TextAlign.center,
         ),
         const Spacer(),
-        SizedBox(
-          width: double.infinity,
-          height: 52,
-          child: ElevatedButton(
-            onPressed: state.unlockWithBiometrics,
-            style: ElevatedButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppRadius.lg),
+        if (state.biometricAvailable)
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: ElevatedButton(
+              onPressed: state.unlockWithBiometrics,
+              style: ElevatedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
+                ),
               ),
+              child: Text(l10n.unlockWithBiometrics),
             ),
-            child: Text(AppLocalizations.of(context)!.unlockWithBiometrics),
+          )
+        else
+          Text(
+            l10n.biometricUnavailable,
+            style: AppTypography.meta,
+            textAlign: TextAlign.center,
           ),
-        ),
         const SizedBox(height: 13),
         TextButton(
           onPressed: state.showPinEntry,
           child: Text(
-            AppLocalizations.of(context)!.unlockUsePin,
+            l10n.unlockUsePin,
             style: const TextStyle(fontSize: 13, color: AppColors.ink),
           ),
         ),
@@ -109,24 +114,29 @@ class _PinFallback extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final error = switch (state.pinError) {
+      'pinIncorrect' => l10n.pinIncorrect,
+      'pinMismatch' => l10n.pinMismatch,
+      _ => null,
+    };
     return Column(
       children: [
         Align(
           alignment: Alignment.centerLeft,
           child: TextButton(
             onPressed: state.hidePinEntry,
-            child: Text(AppLocalizations.of(context)!.pinBack),
+            child: Text(l10n.pinBack),
           ),
         ),
         const Spacer(),
-        Text(
-          AppLocalizations.of(context)!.enterPin,
-          style: AppTypography.unlockTitle,
-        ),
+        Text(l10n.enterPin, style: AppTypography.unlockTitle),
         const SizedBox(height: 8),
         Text(
-          AppLocalizations.of(context)!.pinMockText,
-          style: AppTypography.body,
+          error ?? l10n.pinUnlockHint,
+          style: AppTypography.body.copyWith(
+            color: error != null ? AppColors.danger : null,
+          ),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 28),

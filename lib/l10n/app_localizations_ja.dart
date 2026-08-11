@@ -138,13 +138,87 @@ class AppLocalizationsJa extends AppLocalizations {
   String get backupSheetTitle => 'バックアップと復元';
 
   @override
-  String get backupSheetBody => '暗号化バックアップは後で連携します。今はレビュー用のUIモックです。';
+  String get backupSheetBody =>
+      '暗号化バックアップを作成して保存するか、以前のバックアップから復元します。バックアップパスワードはApp Lock PINとは別です。';
 
   @override
   String get createBackup => 'バックアップ作成';
 
   @override
   String get restoreBackup => 'バックアップを復元';
+
+  @override
+  String get backupPasswordCreateTitle => 'バックアップパスワードを設定';
+
+  @override
+  String get backupPasswordEnterTitle => 'バックアップパスワードを入力';
+
+  @override
+  String get backupPasswordLabel => 'バックアップパスワード';
+
+  @override
+  String get backupPasswordConfirmLabel => 'パスワードを確認';
+
+  @override
+  String get backupPasswordWarning =>
+      'このパスワードを忘れると、PutMindはバックアップを復元できません。アカウントでの再設定はありません。';
+
+  @override
+  String get backupPasswordTooShort => '4文字以上にしてください。';
+
+  @override
+  String get backupPasswordMismatch => 'パスワードが一致しません。';
+
+  @override
+  String get restoreConfirmTitle => '現在のメモリーを置き換えますか？';
+
+  @override
+  String get restoreConfirmBody => '復元すると、この端末のメモリーがバックアップの内容に置き換わります。元に戻せません。';
+
+  @override
+  String get snackBackupCreated => 'バックアップを作成しました';
+
+  @override
+  String get snackBackupRestored => 'バックアップを復元しました';
+
+  @override
+  String get snackBackupFailed => 'バックアップに失敗しました。現在のデータは変更されていません。';
+
+  @override
+  String get snackBackupWrongPassword => 'バックアップパスワードが違います。';
+
+  @override
+  String get snackBackupCorrupted => 'このバックアップファイルは破損しているか不完全です。';
+
+  @override
+  String get snackBackupUnsupported => 'このバックアップ版はサポートされていません。';
+
+  @override
+  String get snackBackupCancelled => 'バックアップをキャンセルしました。';
+
+  @override
+  String get paywallPurchasePending => '処理中…';
+
+  @override
+  String get snackLifetimeUnlocked => 'Lifetimeを解除しました';
+
+  @override
+  String get snackPurchaseRestored => '購入を復元しました';
+
+  @override
+  String get snackPurchaseRestoreNone => 'このアカウントのLifetime購入は見つかりませんでした。';
+
+  @override
+  String get snackPurchaseCancelled => '購入をキャンセルしました。';
+
+  @override
+  String get snackPurchaseFailed => '購入に失敗しました。もう一度お試しください。';
+
+  @override
+  String get snackPurchaseAlreadyOwned => 'Lifetimeはすでに購入済みです。';
+
+  @override
+  String get snackStoreUnavailable => 'ストアを利用できません。';
 
   @override
   String get privacyDialogTitle => 'プライバシー';
@@ -204,7 +278,52 @@ class AppLocalizationsJa extends AppLocalizations {
   String get enterPin => 'PINを入力';
 
   @override
-  String get pinMockText => 'Step 1のモック：任意の4桁で解除できます。';
+  String get pinUnlockHint => 'Enter your 4-digit App Lock PIN.';
+
+  @override
+  String get pinSetupTitle => 'Create App Lock PIN';
+
+  @override
+  String get pinConfirmTitle => 'Confirm PIN';
+
+  @override
+  String get pinMismatch => 'PINs did not match. Try again.';
+
+  @override
+  String get pinIncorrect => 'Incorrect PIN. Try again.';
+
+  @override
+  String get photoViewerSemantics => 'Memory photo, double-tap to zoom';
+
+  @override
+  String get microphoneDenied =>
+      'Microphone access is needed for voice. You can type instead.';
+
+  @override
+  String get speechUnavailable =>
+      'Speech recognition isn\'t available. Type your memory instead.';
+
+  @override
+  String get notificationPermissionDenied =>
+      'Notification permission is required for Daily Reminder.';
+
+  @override
+  String get biometricFailed =>
+      'Biometric unlock didn\'t work. Try again or use your PIN.';
+
+  @override
+  String get biometricUnavailable =>
+      'Biometrics aren\'t available. Use your PIN to unlock.';
+
+  @override
+  String get snackAppLockEnabled => 'App Lock is on';
+
+  @override
+  String get dailyReminderNotificationTitle => 'PutMind';
+
+  @override
+  String get dailyReminderNotificationBody =>
+      'Snap it. Say where. Find it later.';
 
   @override
   String get onboardingSnapTitle => 'パッと撮る。';
@@ -285,39 +404,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get paywallUnlockLifetime => 'Lifetime を解除';
 
   @override
-  String get prototype => 'プロトタイプ';
-
-  @override
-  String get prototypePreviewStates => '状態のプレビュー';
-
-  @override
-  String get prototypeHint => 'このプロトタイプはPutMind MVPの一部ではありません（デバッグ用）。';
-
-  @override
-  String get protoHome => 'ホーム';
-
-  @override
-  String get protoCapture => 'Capture';
-
-  @override
-  String get protoSettings => '設定';
-
-  @override
-  String get protoUnlock => '解除';
-
-  @override
-  String get protoOnboarding => 'オンボーディング';
-
-  @override
-  String get protoEmptyHome => 'ホーム（空）';
-
-  @override
-  String get protoMemoryDetail => 'メモリー詳細';
-
-  @override
-  String get protoPaywall => 'ペイウォール';
-
-  @override
   String get snackMemorySaved => 'メモリーを保存しました';
 
   @override
@@ -334,18 +420,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get snackReminderSchedulingMock => 'リマインダーは今後連携します（モック）。';
-
-  @override
-  String get snackBackupCreatedMock => 'バックアップ作成（モック）';
-
-  @override
-  String get snackRestoreBackupMock => '復元は今後連携します（モック）';
-
-  @override
-  String get snackLifetimeUnlockedMock => 'Lifetime を解除しました（モック購入）';
-
-  @override
-  String get snackPurchaseRestoredMock => '購入を復元しました（モック）';
 
   @override
   String get today => '今日';

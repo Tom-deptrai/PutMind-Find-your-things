@@ -1,4 +1,10 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../models/settings.dart';
 import '../services/memory_repository.dart';
@@ -50,7 +56,7 @@ class SettingsScreen extends StatelessWidget {
         );
       },
     );
-    if (selected != null) state.setLanguage(selected);
+    if (selected != null) await state.setLanguage(selected);
   }
 
   Future<void> _pickAutoLock(BuildContext context) async {
@@ -86,10 +92,11 @@ class SettingsScreen extends StatelessWidget {
         );
       },
     );
-    if (selected != null) state.setAutoLock(selected);
+    if (selected != null) await state.setAutoLock(selected);
   }
 
   Future<void> _pickReminderTime(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
     final time = await showTimePicker(
       context: context,
       initialTime: TimeOfDay(
@@ -97,9 +104,10 @@ class SettingsScreen extends StatelessWidget {
         minute: state.settings.reminderMinute,
       ),
     );
-    if (time != null) {
-      state.setReminderTime(time.hour, time.minute);
-    }
+    if (time == null || !context.mounted) return;
+    state.reminderTitle = l10n.dailyReminderNotificationTitle;
+    state.reminderBody = l10n.dailyReminderNotificationBody;
+    await state.setReminderTime(time.hour, time.minute);
   }
 
   Future<void> _showBackupSheet(BuildContext context) async {
@@ -124,7 +132,7 @@ class SettingsScreen extends StatelessWidget {
                 ElevatedButton(
                   onPressed: () {
                     Navigator.pop(context);
-                    state.mockCreateBackup();
+                    _createBackup(context);
                   },
                   child: Text(l10n.createBackup),
                 ),
@@ -132,7 +140,7 @@ class SettingsScreen extends StatelessWidget {
                 OutlinedButton(
                   onPressed: () {
                     Navigator.pop(context);
-                    state.mockRestoreBackup();
+                    _restoreBackup(context);
                   },
                   child: Text(l10n.restoreBackup),
                 ),
@@ -142,6 +150,51 @@ class SettingsScreen extends StatelessWidget {
         );
       },
     );
+  }
+
+  Future<void> _createBackup(BuildContext context) async {
+    final password = await showBackupPasswordDialog(
+      context: context,
+      confirm: true,
+    );
+    if (password == null || !context.mounted) return;
+
+    final bytes = await state.exportBackupBytes(password);
+    if (bytes == null || !context.mounted) return;
+
+    final dir = await getTemporaryDirectory();
+    final stamp = DateTime.now().toUtc().toIso8601String().replaceAll(':', '-');
+    final file = File(p.join(dir.path, 'PutMindBackup_$stamp.backup'));
+    await file.writeAsBytes(bytes, flush: true);
+    await SharePlus.instance.share(
+      ShareParams(
+        files: [XFile(file.path, mimeType: 'application/octet-stream')],
+        subject: 'PutMind Backup',
+      ),
+    );
+  }
+
+  Future<void> _restoreBackup(BuildContext context) async {
+    final picked = await FilePicker.platform.pickFiles(
+      type: FileType.any,
+      allowMultiple: false,
+      withData: false,
+    );
+    if (picked == null || picked.files.isEmpty) return;
+    final path = picked.files.single.path;
+    if (path == null) return;
+    if (!context.mounted) return;
+
+    final password = await showBackupPasswordDialog(
+      context: context,
+      confirm: false,
+    );
+    if (password == null || !context.mounted) return;
+
+    final confirmed = await showRestoreConfirmDialog(context);
+    if (confirmed != true || !context.mounted) return;
+
+    await state.restoreBackupFromPath(path: path, password: password);
   }
 
   Future<void> _showPrivacy(BuildContext context) async {
@@ -184,7 +237,7 @@ class SettingsScreen extends StatelessWidget {
 
   Future<void> _confirmAppLock(BuildContext context, bool enable) async {
     if (!enable) {
-      state.setAppLock(false);
+      await state.setAppLock(false);
       return;
     }
     final confirmed = await showDialog<bool>(
@@ -210,7 +263,12 @@ class SettingsScreen extends StatelessWidget {
         );
       },
     );
-    if (confirmed == true) state.setAppLock(true);
+    if (confirmed == true) {
+      await state.setAppLock(true);
+      if (state.awaitingPinSetup && context.mounted) {
+        await showPinSetupDialog(context: context, state: state);
+      }
+    }
   }
 
   String _autoLockLabel(BuildContext context, AutoLockInterval interval) {
@@ -289,7 +347,8 @@ class SettingsScreen extends StatelessWidget {
                               ? l10n.lifetimeCardUnlocked
                               : l10n.lifetimeCardLocked(
                                   kFreeMemoryLimit.toString(),
-                                  r'$6.99',
+                                  state.purchaseService.localizedPrice ??
+                                      l10n.paywallPrice,
                                   state.memoryCount.toString(),
                                 ),
                           style: AppTypography.meta,
@@ -309,7 +368,7 @@ class SettingsScreen extends StatelessWidget {
                     subtitle: l10n.settingsVoiceGuidanceRowSubtitle,
                     trailing: AppSwitch(
                       value: s.voiceGuidance,
-                      onChanged: state.setVoiceGuidance,
+                      onChanged: (v) => state.setVoiceGuidance(v),
                     ),
                   ),
                   SettingsRow(
@@ -320,12 +379,23 @@ class SettingsScreen extends StatelessWidget {
                     trailing: AppSwitch(
                       value: s.dailyReminder,
                       onChanged: (v) async {
-                        state.setDailyReminder(v);
-                        if (v) await _pickReminderTime(context);
+                        state.reminderTitle =
+                            l10n.dailyReminderNotificationTitle;
+                        state.reminderBody = l10n.dailyReminderNotificationBody;
+                        final ok = await state.setDailyReminder(v);
+                        if (ok && v && context.mounted) {
+                          await _pickReminderTime(context);
+                        }
                       },
                     ),
                     onTap: s.dailyReminder
-                        ? () => _pickReminderTime(context)
+                        ? () async {
+                            state.reminderTitle =
+                                l10n.dailyReminderNotificationTitle;
+                            state.reminderBody =
+                                l10n.dailyReminderNotificationBody;
+                            await _pickReminderTime(context);
+                          }
                         : null,
                   ),
                   SettingsGroupLabel(l10n.settingsGroupPrivacySecurity),
@@ -374,16 +444,13 @@ class SettingsScreen extends StatelessWidget {
                         );
                         return;
                       }
-                      await showPaywallDialog(
-                        context: context,
-                        onUnlock: state.unlockLifetime,
-                      );
+                      await showPaywallDialog(context: context, state: state);
                     },
                   ),
                   SettingsRow(
                     title: l10n.settingsRestorePurchaseRowTitle,
                     trailing: const Text('›'),
-                    onTap: state.mockRestorePurchase,
+                    onTap: () => state.restorePurchases(),
                   ),
                   SettingsGroupLabel(l10n.settingsGroupAbout),
                   SettingsRow(

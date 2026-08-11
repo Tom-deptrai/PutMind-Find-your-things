@@ -145,13 +145,92 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get backupSheetBody =>
-      'Verschlüsseltes Backup ist später verfügbar. Das sind nur UI-Mocks zum Prüfen.';
+      'Erstellen Sie eine verschlüsselte Backup-Datei oder stellen Sie ein Backup wieder her. Das Backup-Passwort ist getrennt vom App-Lock-PIN.';
 
   @override
   String get createBackup => 'Backup erstellen';
 
   @override
   String get restoreBackup => 'Backup wiederherstellen';
+
+  @override
+  String get backupPasswordCreateTitle => 'Backup-Passwort festlegen';
+
+  @override
+  String get backupPasswordEnterTitle => 'Backup-Passwort eingeben';
+
+  @override
+  String get backupPasswordLabel => 'Backup-Passwort';
+
+  @override
+  String get backupPasswordConfirmLabel => 'Passwort bestätigen';
+
+  @override
+  String get backupPasswordWarning =>
+      'Wenn Sie dieses Passwort vergessen, kann PutMind das Backup nicht wiederherstellen. Es gibt kein Konto-Reset.';
+
+  @override
+  String get backupPasswordTooShort => 'Mindestens 4 Zeichen verwenden.';
+
+  @override
+  String get backupPasswordMismatch => 'Passwörter stimmen nicht überein.';
+
+  @override
+  String get restoreConfirmTitle => 'Aktuelle Erinnerungen ersetzen?';
+
+  @override
+  String get restoreConfirmBody =>
+      'Wiederherstellen ersetzt die Erinnerungen auf diesem Gerät. Das lässt sich nicht rückgängig machen.';
+
+  @override
+  String get snackBackupCreated => 'Backup erstellt';
+
+  @override
+  String get snackBackupRestored => 'Backup wiederhergestellt';
+
+  @override
+  String get snackBackupFailed =>
+      'Backup fehlgeschlagen. Ihre aktuellen Daten wurden nicht geändert.';
+
+  @override
+  String get snackBackupWrongPassword => 'Falsches Backup-Passwort.';
+
+  @override
+  String get snackBackupCorrupted =>
+      'Diese Backup-Datei ist beschädigt oder unvollständig.';
+
+  @override
+  String get snackBackupUnsupported =>
+      'Diese Backup-Version wird nicht unterstützt.';
+
+  @override
+  String get snackBackupCancelled => 'Backup abgebrochen.';
+
+  @override
+  String get paywallPurchasePending => 'Wird verarbeitet…';
+
+  @override
+  String get snackLifetimeUnlocked => 'Lifetime freigeschaltet';
+
+  @override
+  String get snackPurchaseRestored => 'Kauf wiederhergestellt';
+
+  @override
+  String get snackPurchaseRestoreNone =>
+      'Kein Lifetime-Kauf für dieses Konto gefunden.';
+
+  @override
+  String get snackPurchaseCancelled => 'Kauf abgebrochen.';
+
+  @override
+  String get snackPurchaseFailed =>
+      'Kauf fehlgeschlagen. Bitte erneut versuchen.';
+
+  @override
+  String get snackPurchaseAlreadyOwned => 'Lifetime bereits gekauft.';
+
+  @override
+  String get snackStoreUnavailable => 'Store derzeit nicht verfügbar.';
 
   @override
   String get privacyDialogTitle => 'Datenschutz';
@@ -212,8 +291,52 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enterPin => 'PIN eingeben';
 
   @override
-  String get pinMockText =>
-      'Step 1 Mock: Biege beliebige 4 Ziffern für die Entsperrung.';
+  String get pinUnlockHint => 'Enter your 4-digit App Lock PIN.';
+
+  @override
+  String get pinSetupTitle => 'Create App Lock PIN';
+
+  @override
+  String get pinConfirmTitle => 'Confirm PIN';
+
+  @override
+  String get pinMismatch => 'PINs did not match. Try again.';
+
+  @override
+  String get pinIncorrect => 'Incorrect PIN. Try again.';
+
+  @override
+  String get photoViewerSemantics => 'Memory photo, double-tap to zoom';
+
+  @override
+  String get microphoneDenied =>
+      'Microphone access is needed for voice. You can type instead.';
+
+  @override
+  String get speechUnavailable =>
+      'Speech recognition isn\'t available. Type your memory instead.';
+
+  @override
+  String get notificationPermissionDenied =>
+      'Notification permission is required for Daily Reminder.';
+
+  @override
+  String get biometricFailed =>
+      'Biometric unlock didn\'t work. Try again or use your PIN.';
+
+  @override
+  String get biometricUnavailable =>
+      'Biometrics aren\'t available. Use your PIN to unlock.';
+
+  @override
+  String get snackAppLockEnabled => 'App Lock is on';
+
+  @override
+  String get dailyReminderNotificationTitle => 'PutMind';
+
+  @override
+  String get dailyReminderNotificationBody =>
+      'Snap it. Say where. Find it later.';
 
   @override
   String get onboardingSnapTitle => 'Schnapp es.';
@@ -297,40 +420,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get paywallUnlockLifetime => 'Lifetime freischalten';
 
   @override
-  String get prototype => 'Prototyp';
-
-  @override
-  String get prototypePreviewStates => 'Zustände ansehen';
-
-  @override
-  String get prototypeHint =>
-      'Nur Prototyp-Steuerung — nicht Teil des PutMind MVP.';
-
-  @override
-  String get protoHome => 'Home';
-
-  @override
-  String get protoCapture => 'Capture';
-
-  @override
-  String get protoSettings => 'Einstellungen';
-
-  @override
-  String get protoUnlock => 'Entsperren';
-
-  @override
-  String get protoOnboarding => 'Onboarding';
-
-  @override
-  String get protoEmptyHome => 'Leeres Home';
-
-  @override
-  String get protoMemoryDetail => 'Erinnerungsdetails';
-
-  @override
-  String get protoPaywall => 'Paywall';
-
-  @override
   String get snackMemorySaved => 'Erinnerung gespeichert';
 
   @override
@@ -349,19 +438,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get snackReminderSchedulingMock =>
       'Erinnerungen werden später verbunden (Mock).';
-
-  @override
-  String get snackBackupCreatedMock => 'Backup erstellt (Mock)';
-
-  @override
-  String get snackRestoreBackupMock =>
-      'Wiederherstellung kommt in einem späteren Schritt (Mock)';
-
-  @override
-  String get snackLifetimeUnlockedMock => 'Lifetime freigeschaltet (Mock-Kauf)';
-
-  @override
-  String get snackPurchaseRestoredMock => 'Kauf wiederhergestellt (Mock)';
 
   @override
   String get today => 'Heute';

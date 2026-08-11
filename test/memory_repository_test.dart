@@ -3,8 +3,10 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:putmind/models/memory.dart';
+import 'package:putmind/models/settings.dart';
 import 'package:putmind/services/image_storage.dart';
 import 'package:putmind/services/memory_repository.dart';
+import 'package:putmind/services/settings_store.dart';
 import 'package:putmind/services/sqlite_memory_repository.dart';
 import 'package:putmind/state/app_state.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -126,6 +128,8 @@ void main() {
       return AppState.create(
         repository: repo,
         imageStorage: ImageStorage.forDirectory(dir),
+        settingsStore: SettingsStore(),
+        settings: const AppSettings(),
       );
     }
 
@@ -181,12 +185,34 @@ void main() {
       expect(state.memories.any((m) => m.id == first.id), isFalse);
     });
 
-    test('update transcript persists', () async {
+    test('update transcript persists and bumps updatedAt', () async {
       final state = await buildState(seed: createSeedMemories());
       final first = state.memories.first;
+      final before = first.updatedAt;
       state.openMemoryDetail(first);
+      expect(state.selectedMemory?.id, first.id);
       await state.updateSelectedTranscript('Updated passport location.');
+      expect(state.selectedMemory?.id, first.id);
+      expect(state.selectedMemory?.transcript, 'Updated passport location.');
+      expect(state.memories.first.transcript, 'Updated passport location.');
+      expect(state.memories.first.updatedAt.isAfter(before), isTrue);
+      // Empty transcript is ignored
+      await state.updateSelectedTranscript('   ');
       expect(state.memories.first.transcript, 'Updated passport location.');
     });
+
+    test(
+      'clearing selection before update is a no-op (edit race guard)',
+      () async {
+        final state = await buildState(seed: createSeedMemories());
+        final first = state.memories.first;
+        final originalTranscript = first.transcript;
+        state.openMemoryDetail(first);
+        state.closeMemoryDetail();
+        expect(state.selectedMemory, isNull);
+        await state.updateSelectedTranscript('Should not apply.');
+        expect(state.memories.first.transcript, originalTranscript);
+      },
+    );
   });
 }

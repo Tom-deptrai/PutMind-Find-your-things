@@ -7,7 +7,10 @@ import 'package:putmind/models/memory.dart';
 import 'package:putmind/models/settings.dart';
 import 'package:putmind/services/image_storage.dart';
 import 'package:putmind/services/memory_repository.dart';
+import 'package:putmind/services/settings_store.dart';
 import 'package:putmind/state/app_state.dart';
+import 'package:putmind/widgets/app_dialogs.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Widget tests use fake-async; avoid async filesystem APIs like createTemp.
 Directory _syncTempDir(String name) {
@@ -25,11 +28,13 @@ Future<AppState> _createState({
   List<Memory>? seed,
   AppSettings? settings,
 }) async {
+  SharedPreferences.setMockInitialValues({});
   final dir = _syncTempDir('putmind_ui');
   final repo = InMemoryMemoryRepository(seed: seed ?? createSeedMemories());
   return AppState.create(
     repository: repo,
     imageStorage: ImageStorage.forDirectory(dir),
+    settingsStore: SettingsStore(),
     settings: settings,
   );
 }
@@ -53,7 +58,7 @@ void main() {
       expect(find.text('Recent memories'), findsOneWidget);
       expect(find.text('Passport'), findsOneWidget);
       expect(find.byIcon(Icons.camera_alt_rounded), findsOneWidget);
-      expect(find.text('Prototype'), findsOneWidget);
+      expect(find.text('Prototype'), findsNothing);
     });
 
     testWidgets('Capture flow save returns to Home', (tester) async {
@@ -93,49 +98,6 @@ void main() {
       expect(find.text('PutMind Lifetime'), findsOneWidget);
     });
 
-    testWidgets('Prototype navigator can open Unlock', (tester) async {
-      final state = await _createState();
-      await _pumpApp(tester, state);
-
-      await tester.tap(find.text('Prototype'));
-      await tester.pump();
-      await tester.tap(find.text('Unlock'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 50));
-
-      expect(find.text('Unlock PutMind'), findsOneWidget);
-      await tester.tap(find.text('Unlock with biometrics'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 50));
-      expect(find.text('PutMind'), findsOneWidget);
-    });
-
-    testWidgets('Prototype navigator can open Onboarding', (tester) async {
-      final state = await _createState();
-      await _pumpApp(tester, state);
-
-      await tester.tap(find.text('Prototype'));
-      await tester.pump();
-      await tester.tap(find.text('Onboarding'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 50));
-
-      expect(find.text('Snap it.'), findsOneWidget);
-    });
-
-    testWidgets('Prototype navigator can open Empty Home', (tester) async {
-      final state = await _createState();
-      await _pumpApp(tester, state);
-
-      await tester.tap(find.text('Prototype'));
-      await tester.pump();
-      await tester.tap(find.text('Empty Home'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 100));
-
-      expect(find.text('Your things will appear here.'), findsOneWidget);
-    });
-
     testWidgets('search opens Memory Detail sheet', (tester) async {
       final state = await _createState();
       await _pumpApp(tester, state);
@@ -154,34 +116,46 @@ void main() {
       expect(find.text('Delete'), findsOneWidget);
     });
 
-    testWidgets('Prototype Paywall and Unlock PIN work', (tester) async {
+    testWidgets('Edit → Save updates transcript without crash', (tester) async {
       final state = await _createState();
+      final original = state.memories.first;
+      final beforeUpdatedAt = original.updatedAt;
       await _pumpApp(tester, state);
 
-      await tester.tap(find.text('Prototype'));
+      // Hold selection as Home does after the detail sheet returns edit.
+      state.openMemoryDetail(original);
       await tester.pump();
-      await tester.tap(find.text('Paywall'));
+      expect(state.selectedMemory?.id, original.id);
+
+      final navContext = tester.element(find.byType(Scaffold).first);
+      final resultFuture = showEditTranscriptDialog(
+        context: navContext,
+        initialText: original.transcript,
+      );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));
-      expect(find.text('Unlock unlimited memories'), findsOneWidget);
-      expect(find.text(r'$6.99'), findsOneWidget);
-      await tester.tap(find.text('Unlock Lifetime'));
-      await tester.pump();
+      expect(find.text('Edit memory'), findsOneWidget);
 
-      await tester.tap(find.text('Prototype'));
+      await tester.enterText(
+        find.byType(TextField).last,
+        'Passport, moved to the safe.',
+      );
       await tester.pump();
-      await tester.tap(find.text('Unlock'));
+      await tester.tap(find.text('Save'));
       await tester.pump();
-      await tester.tap(find.text('Use PIN instead'));
-      await tester.pump();
-      expect(find.text('Enter PIN'), findsOneWidget);
-
-      for (final digit in ['1', '2', '3', '4']) {
-        await tester.tap(find.text(digit));
-        await tester.pump();
-      }
       await tester.pump(const Duration(milliseconds: 50));
-      expect(find.text('PutMind'), findsOneWidget);
+
+      expect(await resultFuture, 'Passport, moved to the safe.');
+      expect(tester.takeException(), isNull);
+      // Selection still valid for the subsequent repository update.
+      expect(state.selectedMemory?.id, original.id);
+      await state.updateSelectedTranscript('Passport, moved to the safe.');
+      await tester.pump();
+
+      final updated = state.memories.firstWhere((m) => m.id == original.id);
+      expect(updated.transcript, 'Passport, moved to the safe.');
+      expect(updated.updatedAt.isAfter(beforeUpdatedAt), isTrue);
+      expect(find.textContaining('Passport, moved to the safe.'), findsWidgets);
     });
 
     testWidgets('starts on Unlock when App Lock is on', (tester) async {

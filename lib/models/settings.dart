@@ -82,7 +82,16 @@ enum AppLanguage {
 
 enum AutoLockInterval { immediately, oneMinute, fiveMinutes, fifteenMinutes }
 
-/// Settings state for MVP UI (native wiring comes in later steps).
+extension AutoLockIntervalX on AutoLockInterval {
+  Duration get duration => switch (this) {
+    AutoLockInterval.immediately => Duration.zero,
+    AutoLockInterval.oneMinute => const Duration(minutes: 1),
+    AutoLockInterval.fiveMinutes => const Duration(minutes: 5),
+    AutoLockInterval.fifteenMinutes => const Duration(minutes: 15),
+  };
+}
+
+/// Settings state for PutMind MVP.
 class AppSettings {
   const AppSettings({
     this.language = AppLanguage.english,
@@ -134,6 +143,51 @@ class AppSettings {
           ? null
           : (lastBackupAt ?? this.lastBackupAt),
       onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
+    );
+  }
+
+  Map<String, Object?> toJson() => {
+    'language': language.name,
+    'voiceGuidance': voiceGuidance,
+    'dailyReminder': dailyReminder,
+    'reminderHour': reminderHour,
+    'reminderMinute': reminderMinute,
+    'appLock': appLock,
+    'autoLock': autoLock.name,
+    'isLifetimeUnlocked': isLifetimeUnlocked,
+    'lastBackupAt': lastBackupAt?.millisecondsSinceEpoch,
+    'onboardingCompleted': onboardingCompleted,
+  };
+
+  factory AppSettings.fromJson(Map<String, dynamic> json) {
+    AppLanguage language = AppLanguage.english;
+    for (final value in AppLanguage.values) {
+      if (value.name == json['language']) {
+        language = value;
+        break;
+      }
+    }
+    AutoLockInterval autoLock = AutoLockInterval.immediately;
+    for (final value in AutoLockInterval.values) {
+      if (value.name == json['autoLock']) {
+        autoLock = value;
+        break;
+      }
+    }
+    final backupMs = json['lastBackupAt'];
+    return AppSettings(
+      language: language,
+      voiceGuidance: json['voiceGuidance'] as bool? ?? true,
+      dailyReminder: json['dailyReminder'] as bool? ?? false,
+      reminderHour: json['reminderHour'] as int? ?? 21,
+      reminderMinute: json['reminderMinute'] as int? ?? 0,
+      appLock: json['appLock'] as bool? ?? false,
+      autoLock: autoLock,
+      isLifetimeUnlocked: json['isLifetimeUnlocked'] as bool? ?? false,
+      lastBackupAt: backupMs is int
+          ? DateTime.fromMillisecondsSinceEpoch(backupMs)
+          : null,
+      onboardingCompleted: json['onboardingCompleted'] as bool? ?? true,
     );
   }
 }

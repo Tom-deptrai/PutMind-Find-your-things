@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import 'debug/prototype_navigator.dart';
 import 'l10n/app_localizations.dart';
 import 'screens/capture_screen.dart';
 import 'screens/home_screen.dart';
@@ -9,6 +8,7 @@ import 'screens/onboarding_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/unlock_screen.dart';
 import 'services/image_storage.dart';
+import 'services/purchase_service.dart';
 import 'services/repository_factory.dart';
 import 'state/app_state.dart';
 import 'theme/app_theme.dart';
@@ -24,45 +24,78 @@ class PutMindApp extends StatefulWidget {
   State<PutMindApp> createState() => _PutMindAppState();
 }
 
-class _PutMindAppState extends State<PutMindApp> {
+class _PutMindAppState extends State<PutMindApp> with WidgetsBindingObserver {
   AppState? _state;
   bool _bootstrapping = false;
   final GlobalKey<ScaffoldMessengerState> _messengerKey =
       GlobalKey<ScaffoldMessengerState>();
-  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     if (widget.state != null) {
       _state = widget.state;
       _state!.addListener(_onStateChanged);
+      _syncReminderCopy(_state!);
     } else {
       _bootstrapping = true;
       _bootstrap();
     }
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState lifecycle) {
+    final state = _state;
+    if (state == null) return;
+    // Use paused/resumed — inactive fires for permission dialogs / camera.
+    if (lifecycle == AppLifecycleState.paused) {
+      state.onAppPaused();
+    } else if (lifecycle == AppLifecycleState.resumed) {
+      state.onAppResumed();
+    }
+  }
+
   Future<void> _bootstrap() async {
     final repository = await createMemoryRepository();
     final imageStorage = await ImageStorage.create();
+    final purchaseService = kIsWeb
+        ? FakePurchaseService(isAvailable: false)
+        : StorePurchaseService();
     final state = await AppState.create(
       repository: repository,
       imageStorage: imageStorage,
+      purchaseService: purchaseService,
     );
     if (!mounted) {
       state.dispose();
       return;
     }
+    await state.refreshBiometricAvailability();
     setState(() {
       _state = state;
       _bootstrapping = false;
     });
     _state!.addListener(_onStateChanged);
+    _syncReminderCopy(state);
+    if (state.settings.dailyReminder) {
+      await state.ensureReminderScheduled();
+    }
+  }
+
+  void _syncReminderCopy(AppState state) {
+    final loc = _messengerKey.currentContext == null
+        ? null
+        : AppLocalizations.of(_messengerKey.currentContext!);
+    if (loc != null) {
+      state.reminderTitle = loc.dailyReminderNotificationTitle;
+      state.reminderBody = loc.dailyReminderNotificationBody;
+    }
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _state?.removeListener(_onStateChanged);
     if (widget.state == null) {
       _state?.dispose();
@@ -73,6 +106,7 @@ class _PutMindAppState extends State<PutMindApp> {
   void _onStateChanged() {
     final state = _state;
     if (state == null) return;
+    _syncReminderCopy(state);
     final messageKey = state.snackMessage;
     if (messageKey.isNotEmpty) {
       final loc = _messengerKey.currentContext == null
@@ -97,12 +131,28 @@ class _PutMindAppState extends State<PutMindApp> {
       'saveMemoryFailed' => loc.saveMemoryFailed,
       'replacePhotoFailed' => loc.replacePhotoFailed,
       'snackAppLockMockInfo' => loc.snackAppLockMockInfo,
+      'snackAppLockEnabled' => loc.snackAppLockEnabled,
       'snackReminderSchedulingMock' => loc.snackReminderSchedulingMock,
-      'snackBackupCreatedMock' => loc.snackBackupCreatedMock,
-      'snackRestoreBackupMock' => loc.snackRestoreBackupMock,
-      'snackLifetimeUnlockedMock' => loc.snackLifetimeUnlockedMock,
-      'snackPurchaseRestoredMock' => loc.snackPurchaseRestoredMock,
+      'snackBackupCreated' => loc.snackBackupCreated,
+      'snackBackupRestored' => loc.snackBackupRestored,
+      'snackBackupFailed' => loc.snackBackupFailed,
+      'snackBackupWrongPassword' => loc.snackBackupWrongPassword,
+      'snackBackupCorrupted' => loc.snackBackupCorrupted,
+      'snackBackupUnsupported' => loc.snackBackupUnsupported,
+      'snackBackupCancelled' => loc.snackBackupCancelled,
+      'snackLifetimeUnlocked' => loc.snackLifetimeUnlocked,
+      'snackPurchaseRestored' => loc.snackPurchaseRestored,
+      'snackPurchaseRestoreNone' => loc.snackPurchaseRestoreNone,
+      'snackPurchaseCancelled' => loc.snackPurchaseCancelled,
+      'snackPurchaseFailed' => loc.snackPurchaseFailed,
+      'snackPurchaseAlreadyOwned' => loc.snackPurchaseAlreadyOwned,
+      'snackStoreUnavailable' => loc.snackStoreUnavailable,
       'snackPhotoReplacedMock' => loc.snackPhotoReplacedMock,
+      'microphoneDenied' => loc.microphoneDenied,
+      'speechUnavailable' => loc.speechUnavailable,
+      'notificationPermissionDenied' => loc.notificationPermissionDenied,
+      'biometricFailed' => loc.biometricFailed,
+      'biometricUnavailable' => loc.biometricUnavailable,
       _ => key,
     };
   }
@@ -135,28 +185,16 @@ class _PutMindAppState extends State<PutMindApp> {
       );
     }
 
-    final prototype = kDebugMode
-        ? PrototypeNavigator(state: state, navigatorKey: _navigatorKey)
-        : null;
-
     return MaterialApp(
       title: 'PutMind',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       scaffoldMessengerKey: _messengerKey,
-      navigatorKey: _navigatorKey,
       locale: state.settings.language.locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       builder: (context, child) {
-        final content = Stack(
-          children: [
-            child ?? const SizedBox.shrink(),
-            if (prototype != null) prototype,
-          ],
-        );
-
-        return MobileViewportFrame(child: content);
+        return MobileViewportFrame(child: child ?? const SizedBox.shrink());
       },
       home: AnimatedSwitcher(
         duration: const Duration(milliseconds: 180),

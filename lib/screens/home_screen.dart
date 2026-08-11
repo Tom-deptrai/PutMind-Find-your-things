@@ -63,31 +63,45 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _openDetail(Memory memory) async {
     state.openMemoryDetail(memory);
-    await showMemoryDetailSheet(
+    final action = await showMemoryDetailSheet(
       context: context,
       memory: memory,
-      onEdit: () async {
+    );
+    if (!mounted) return;
+
+    switch (action) {
+      case MemoryDetailAction.edit:
         final current = state.selectedMemory ?? memory;
-        await showEditTranscriptDialog(
+        final text = await showEditTranscriptDialog(
           context: context,
           initialText: current.transcript,
-          onSave: (text) => state.updateSelectedTranscript(text),
         );
-      },
-      onReplacePhoto: () => state.openReplacePhoto(memory),
-      onDelete: () async {
+        if (!mounted) return;
+        if (text != null) {
+          await state.updateSelectedTranscript(text);
+        }
+        if (state.route == AppRoute.home) {
+          state.closeMemoryDetail();
+        }
+      case MemoryDetailAction.replacePhoto:
+        state.openReplacePhoto(memory);
+      case MemoryDetailAction.delete:
         final confirmed = await showDeleteMemoryDialog(context);
+        if (!mounted) return;
         if (confirmed == true) {
           await state.confirmDeleteSelected();
-          return;
+        } else {
+          state.cancelDelete();
+          if (state.route == AppRoute.home) {
+            state.closeMemoryDetail();
+          }
         }
-        state.cancelDelete();
-      },
-    );
-    // Replace-photo navigates away to Capture; don't clear selection then.
-    if (state.route == AppRoute.home &&
-        state.captureMode != CaptureMode.replacePhoto) {
-      state.closeMemoryDetail();
+      case null:
+        // Dismissed — clear selection unless replace-photo already navigated.
+        if (state.route == AppRoute.home &&
+            state.captureMode != CaptureMode.replacePhoto) {
+          state.closeMemoryDetail();
+        }
     }
   }
 

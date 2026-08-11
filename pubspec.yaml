@@ -20,13 +20,43 @@ dependencies:
   # 13.x pulls permission_handler_android 14 which requires AGP 9 kotlin DSL.
   permission_handler: 11.4.0
   uuid: ^4.6.0
+  shared_preferences: ^2.5.5
+  flutter_secure_storage: 9.2.4
+  crypto: ^3.0.7
+  speech_to_text: ^7.4.0
+  audioplayers: ^6.8.1
+  flutter_local_notifications: ^22.3.0
+  timezone: ^0.11.1
+  local_auth: ^3.0.2
+  flutter_timezone: ^5.1.0
+  cryptography: ^2.7.0
+  archive: ^4.0.7
+  file_picker: ^10.3.2
+  share_plus: ^11.1.0
+  in_app_purchase: ^3.2.3
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
   sqflite_common_ffi: ^2.3.7+1
+  flutter_launcher_icons: ^0.14.4
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: assets/branding/putmind_icon.png
+  remove_alpha_ios: true
+  background_color_ios: "#081028"
+  # Full-bleed adaptive layers — Samsung/Android apply their own mask.
+  # inset 0 avoids the default 16% shrink that looked like icon-in-icon.
+  adaptive_icon_background: assets/branding/putmind_icon.png
+  adaptive_icon_foreground: assets/branding/putmind_icon.png
+  adaptive_icon_foreground_inset: 0
 
 flutter:
   generate: true
   uses-material-design: true
+  assets:
+    - assets/branding/
+    - assets/voice_guidance/

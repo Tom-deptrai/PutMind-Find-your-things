@@ -138,13 +138,91 @@ class AppLocalizationsZh extends AppLocalizations {
   String get backupSheetTitle => '備份與還原';
 
   @override
-  String get backupSheetBody => '加密備份會在之後步驟連接。以下按鈕僅作為介面示意供你檢查。';
+  String get backupSheetBody =>
+      'Create an encrypted backup file you can save anywhere, or restore from a previous backup. The backup password is separate from App Lock PIN.';
 
   @override
   String get createBackup => '建立備份';
 
   @override
   String get restoreBackup => '還原備份';
+
+  @override
+  String get backupPasswordCreateTitle => 'Set backup password';
+
+  @override
+  String get backupPasswordEnterTitle => 'Enter backup password';
+
+  @override
+  String get backupPasswordLabel => 'Backup password';
+
+  @override
+  String get backupPasswordConfirmLabel => 'Confirm password';
+
+  @override
+  String get backupPasswordWarning =>
+      'If you forget this password, PutMind cannot recover the backup. There is no account reset.';
+
+  @override
+  String get backupPasswordTooShort => 'Use at least 4 characters.';
+
+  @override
+  String get backupPasswordMismatch => 'Passwords do not match.';
+
+  @override
+  String get restoreConfirmTitle => 'Replace current memories?';
+
+  @override
+  String get restoreConfirmBody =>
+      'Restoring will replace memories on this device with the backup. This cannot be undone.';
+
+  @override
+  String get snackBackupCreated => 'Backup created';
+
+  @override
+  String get snackBackupRestored => 'Backup restored';
+
+  @override
+  String get snackBackupFailed =>
+      'Backup failed. Your current data was not changed.';
+
+  @override
+  String get snackBackupWrongPassword => 'Wrong backup password.';
+
+  @override
+  String get snackBackupCorrupted =>
+      'This backup file is corrupted or incomplete.';
+
+  @override
+  String get snackBackupUnsupported => 'This backup version isn’t supported.';
+
+  @override
+  String get snackBackupCancelled => 'Backup cancelled.';
+
+  @override
+  String get paywallPurchasePending => 'Processing…';
+
+  @override
+  String get snackLifetimeUnlocked => 'Lifetime unlocked';
+
+  @override
+  String get snackPurchaseRestored => 'Purchase restored';
+
+  @override
+  String get snackPurchaseRestoreNone =>
+      'No Lifetime purchase found for this account.';
+
+  @override
+  String get snackPurchaseCancelled => 'Purchase cancelled.';
+
+  @override
+  String get snackPurchaseFailed => 'Purchase failed. Please try again.';
+
+  @override
+  String get snackPurchaseAlreadyOwned => 'Lifetime already purchased.';
+
+  @override
+  String get snackStoreUnavailable => 'Store is unavailable right now.';
 
   @override
   String get privacyDialogTitle => '隱私';
@@ -204,7 +282,52 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enterPin => '輸入 PIN';
 
   @override
-  String get pinMockText => 'Step 1 示意：任何 4 位數即可解鎖。';
+  String get pinUnlockHint => 'Enter your 4-digit App Lock PIN.';
+
+  @override
+  String get pinSetupTitle => 'Create App Lock PIN';
+
+  @override
+  String get pinConfirmTitle => 'Confirm PIN';
+
+  @override
+  String get pinMismatch => 'PINs did not match. Try again.';
+
+  @override
+  String get pinIncorrect => 'Incorrect PIN. Try again.';
+
+  @override
+  String get photoViewerSemantics => 'Memory photo, double-tap to zoom';
+
+  @override
+  String get microphoneDenied =>
+      'Microphone access is needed for voice. You can type instead.';
+
+  @override
+  String get speechUnavailable =>
+      'Speech recognition isn\'t available. Type your memory instead.';
+
+  @override
+  String get notificationPermissionDenied =>
+      'Notification permission is required for Daily Reminder.';
+
+  @override
+  String get biometricFailed =>
+      'Biometric unlock didn\'t work. Try again or use your PIN.';
+
+  @override
+  String get biometricUnavailable =>
+      'Biometrics aren\'t available. Use your PIN to unlock.';
+
+  @override
+  String get snackAppLockEnabled => 'App Lock is on';
+
+  @override
+  String get dailyReminderNotificationTitle => 'PutMind';
+
+  @override
+  String get dailyReminderNotificationBody =>
+      'Snap it. Say where. Find it later.';
 
   @override
   String get onboardingSnapTitle => '拍一下。';
@@ -284,39 +407,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get paywallUnlockLifetime => '解鎖 Lifetime';
 
   @override
-  String get prototype => '原型';
-
-  @override
-  String get prototypePreviewStates => '預覽狀態';
-
-  @override
-  String get prototypeHint => '僅供原型控制 — 不是 PutMind MVP 介面的一部分。';
-
-  @override
-  String get protoHome => '首頁';
-
-  @override
-  String get protoCapture => 'Capture';
-
-  @override
-  String get protoSettings => '設定';
-
-  @override
-  String get protoUnlock => '解鎖';
-
-  @override
-  String get protoOnboarding => '入門';
-
-  @override
-  String get protoEmptyHome => '空的首頁';
-
-  @override
-  String get protoMemoryDetail => '記憶細節';
-
-  @override
-  String get protoPaywall => '付費牆';
-
-  @override
   String get snackMemorySaved => '已儲存記憶';
 
   @override
@@ -333,18 +423,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get snackReminderSchedulingMock => '提醒會在之後步驟連接（示意）';
-
-  @override
-  String get snackBackupCreatedMock => '已建立備份（示意）';
-
-  @override
-  String get snackRestoreBackupMock => '還原會在之後步驟連接（示意）';
-
-  @override
-  String get snackLifetimeUnlockedMock => '已解鎖 Lifetime（示意購買）';
-
-  @override
-  String get snackPurchaseRestoredMock => '已還原購買（示意）';
 
   @override
   String get today => '今天';
@@ -555,13 +633,86 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get backupSheetTitle => '備份與還原';
 
   @override
-  String get backupSheetBody => '加密備份會在之後步驟連接。以下按鈕僅作為介面示意供你檢查。';
+  String get backupSheetBody =>
+      '建立加密備份檔並自行保存，或從先前備份還原。備份密碼與 App Lock PIN 完全分開。';
 
   @override
   String get createBackup => '建立備份';
 
   @override
   String get restoreBackup => '還原備份';
+
+  @override
+  String get backupPasswordCreateTitle => '設定備份密碼';
+
+  @override
+  String get backupPasswordEnterTitle => '輸入備份密碼';
+
+  @override
+  String get backupPasswordLabel => '備份密碼';
+
+  @override
+  String get backupPasswordConfirmLabel => '確認密碼';
+
+  @override
+  String get backupPasswordWarning => '若忘記此密碼，PutMind 無法還原備份。沒有帳號可重設。';
+
+  @override
+  String get backupPasswordTooShort => '請至少使用 4 個字元。';
+
+  @override
+  String get backupPasswordMismatch => '密碼不相符。';
+
+  @override
+  String get restoreConfirmTitle => '取代目前的記憶？';
+
+  @override
+  String get restoreConfirmBody => '還原會以備份內容取代此裝置上的記憶。無法復原。';
+
+  @override
+  String get snackBackupCreated => '已建立備份';
+
+  @override
+  String get snackBackupRestored => '已還原備份';
+
+  @override
+  String get snackBackupFailed => '備份失敗。目前資料未變更。';
+
+  @override
+  String get snackBackupWrongPassword => '備份密碼錯誤。';
+
+  @override
+  String get snackBackupCorrupted => '此備份檔損壞或不完整。';
+
+  @override
+  String get snackBackupUnsupported => '不支援此備份版本。';
+
+  @override
+  String get snackBackupCancelled => '已取消備份。';
+
+  @override
+  String get paywallPurchasePending => '處理中…';
+
+  @override
+  String get snackLifetimeUnlocked => '已解鎖 Lifetime';
+
+  @override
+  String get snackPurchaseRestored => '已還原購買';
+
+  @override
+  String get snackPurchaseRestoreNone => '此帳號找不到 Lifetime 購買紀錄。';
+
+  @override
+  String get snackPurchaseCancelled => '已取消購買。';
+
+  @override
+  String get snackPurchaseFailed => '購買失敗。請再試一次。';
+
+  @override
+  String get snackPurchaseAlreadyOwned => '已購買 Lifetime。';
+
+  @override
+  String get snackStoreUnavailable => '目前無法使用商店。';
 
   @override
   String get privacyDialogTitle => '隱私';
@@ -621,7 +772,52 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get enterPin => '輸入 PIN';
 
   @override
-  String get pinMockText => 'Step 1 示意：任何 4 位數即可解鎖。';
+  String get pinUnlockHint => 'Enter your 4-digit App Lock PIN.';
+
+  @override
+  String get pinSetupTitle => 'Create App Lock PIN';
+
+  @override
+  String get pinConfirmTitle => 'Confirm PIN';
+
+  @override
+  String get pinMismatch => 'PINs did not match. Try again.';
+
+  @override
+  String get pinIncorrect => 'Incorrect PIN. Try again.';
+
+  @override
+  String get photoViewerSemantics => 'Memory photo, double-tap to zoom';
+
+  @override
+  String get microphoneDenied =>
+      'Microphone access is needed for voice. You can type instead.';
+
+  @override
+  String get speechUnavailable =>
+      'Speech recognition isn\'t available. Type your memory instead.';
+
+  @override
+  String get notificationPermissionDenied =>
+      'Notification permission is required for Daily Reminder.';
+
+  @override
+  String get biometricFailed =>
+      'Biometric unlock didn\'t work. Try again or use your PIN.';
+
+  @override
+  String get biometricUnavailable =>
+      'Biometrics aren\'t available. Use your PIN to unlock.';
+
+  @override
+  String get snackAppLockEnabled => 'App Lock is on';
+
+  @override
+  String get dailyReminderNotificationTitle => 'PutMind';
+
+  @override
+  String get dailyReminderNotificationBody =>
+      'Snap it. Say where. Find it later.';
 
   @override
   String get onboardingSnapTitle => '拍一下。';
@@ -701,39 +897,6 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get paywallUnlockLifetime => '解鎖 Lifetime';
 
   @override
-  String get prototype => '原型';
-
-  @override
-  String get prototypePreviewStates => '預覽狀態';
-
-  @override
-  String get prototypeHint => '僅供原型控制 — 不是 PutMind MVP 介面的一部分。';
-
-  @override
-  String get protoHome => '首頁';
-
-  @override
-  String get protoCapture => 'Capture';
-
-  @override
-  String get protoSettings => '設定';
-
-  @override
-  String get protoUnlock => '解鎖';
-
-  @override
-  String get protoOnboarding => '入門';
-
-  @override
-  String get protoEmptyHome => '空的首頁';
-
-  @override
-  String get protoMemoryDetail => '記憶細節';
-
-  @override
-  String get protoPaywall => '付費牆';
-
-  @override
   String get snackMemorySaved => '已儲存記憶';
 
   @override
@@ -750,18 +913,6 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get snackReminderSchedulingMock => '提醒會在之後步驟連接（示意）';
-
-  @override
-  String get snackBackupCreatedMock => '已建立備份（示意）';
-
-  @override
-  String get snackRestoreBackupMock => '還原會在之後步驟連接（示意）';
-
-  @override
-  String get snackLifetimeUnlockedMock => '已解鎖 Lifetime（示意購買）';
-
-  @override
-  String get snackPurchaseRestoredMock => '已還原購買（示意）';
 
   @override
   String get today => '今天';
