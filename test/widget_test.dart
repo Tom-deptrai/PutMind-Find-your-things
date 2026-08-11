@@ -170,6 +170,53 @@ void main() {
       expect(find.text('Your things will appear here.'), findsOneWidget);
     });
 
+    testWidgets('search opens Memory Detail sheet', (tester) async {
+      final state = AppState();
+      await tester.pumpWidget(PutMindApp(state: state));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), 'passport');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Passport'), findsOneWidget);
+      await tester.tap(find.text('Passport'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Edit'), findsOneWidget);
+      expect(find.text('Replace photo'), findsOneWidget);
+      expect(find.text('Delete'), findsOneWidget);
+    });
+
+    testWidgets('Prototype Paywall and Unlock PIN work', (tester) async {
+      final state = AppState();
+      await tester.pumpWidget(PutMindApp(state: state));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Prototype'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Paywall'));
+      await tester.pumpAndSettle();
+      expect(find.text('Unlock unlimited memories'), findsOneWidget);
+      expect(find.text(r'$6.99'), findsOneWidget);
+      await tester.tap(find.text('Unlock Lifetime'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Prototype'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Unlock'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Use PIN instead'));
+      await tester.pumpAndSettle();
+      expect(find.text('Enter PIN'), findsOneWidget);
+
+      for (final digit in ['1', '2', '3', '4']) {
+        await tester.tap(find.text(digit));
+        await tester.pump();
+      }
+      await tester.pumpAndSettle();
+      expect(find.text('PutMind'), findsOneWidget);
+    });
+
     testWidgets('starts on Unlock when App Lock is on', (tester) async {
       final state = AppState(settings: const AppSettings(appLock: true));
       await tester.pumpWidget(PutMindApp(state: state));

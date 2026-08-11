@@ -10,9 +10,18 @@ import '../widgets/memory_detail_sheet.dart';
 ///
 /// Tree-shaken / gated by [kDebugMode] — never shown in release builds.
 class PrototypeNavigator extends StatefulWidget {
-  const PrototypeNavigator({super.key, required this.state});
+  const PrototypeNavigator({
+    super.key,
+    required this.state,
+    required this.navigatorKey,
+  });
 
   final AppState state;
+
+  /// Dialogs/sheets need a context under [MaterialApp]'s Navigator.
+  /// The prototype overlay lives in [MaterialApp.builder], so it receives
+  /// the app navigator key explicitly.
+  final GlobalKey<NavigatorState> navigatorKey;
 
   @override
   State<PrototypeNavigator> createState() => _PrototypeNavigatorState();
@@ -22,6 +31,12 @@ class _PrototypeNavigatorState extends State<PrototypeNavigator> {
   bool _open = false;
 
   AppState get state => widget.state;
+
+  BuildContext get _navContext {
+    final ctx = widget.navigatorKey.currentContext;
+    assert(ctx != null, 'Navigator context unavailable');
+    return ctx!;
+  }
 
   Future<void> _go(VoidCallback action) async {
     setState(() => _open = false);
@@ -34,11 +49,11 @@ class _PrototypeNavigatorState extends State<PrototypeNavigator> {
     final memory = state.selectedMemory;
     if (memory == null || !mounted) return;
     await showMemoryDetailSheet(
-      context: context,
+      context: _navContext,
       memory: memory,
       onEdit: () {
         showEditTranscriptDialog(
-          context: context,
+          context: _navContext,
           initialText: memory.transcript,
           onSave: (text) async {
             state.openMemoryDetail(memory);
@@ -53,7 +68,7 @@ class _PrototypeNavigatorState extends State<PrototypeNavigator> {
       },
       onDelete: () async {
         state.openMemoryDetail(memory);
-        final confirmed = await showDeleteMemoryDialog(context);
+        final confirmed = await showDeleteMemoryDialog(_navContext);
         if (confirmed == true) {
           await state.confirmDeleteSelected();
         } else {
@@ -68,7 +83,10 @@ class _PrototypeNavigatorState extends State<PrototypeNavigator> {
   Future<void> _openPaywall() async {
     setState(() => _open = false);
     state.prototypeShowPaywall();
-    await showPaywallDialog(context: context, onUnlock: state.unlockLifetime);
+    await showPaywallDialog(
+      context: _navContext,
+      onUnlock: state.unlockLifetime,
+    );
     state.hidePaywall();
   }
 
@@ -78,12 +96,14 @@ class _PrototypeNavigatorState extends State<PrototypeNavigator> {
     final bottom = MediaQuery.paddingOf(context).bottom;
 
     return Stack(
+      fit: StackFit.expand,
       children: [
         if (_open) ...[
           Positioned.fill(
             child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
               onTap: () => setState(() => _open = false),
-              child: Container(color: Colors.transparent),
+              child: const ColoredBox(color: Color(0x00000000)),
             ),
           ),
           Positioned(

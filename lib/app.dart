@@ -9,6 +9,7 @@ import 'screens/settings_screen.dart';
 import 'screens/unlock_screen.dart';
 import 'state/app_state.dart';
 import 'theme/app_theme.dart';
+import 'widgets/mobile_viewport_frame.dart';
 
 class PutMindApp extends StatefulWidget {
   const PutMindApp({super.key, this.state});
@@ -24,6 +25,7 @@ class _PutMindAppState extends State<PutMindApp> {
   late final AppState _state = widget.state ?? AppState();
   final GlobalKey<ScaffoldMessengerState> _messengerKey =
       GlobalKey<ScaffoldMessengerState>();
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
 
   @override
   void initState() {
@@ -68,20 +70,25 @@ class _PutMindAppState extends State<PutMindApp> {
 
   @override
   Widget build(BuildContext context) {
-    final prototype = kDebugMode ? PrototypeNavigator(state: _state) : null;
+    final prototype = kDebugMode
+        ? PrototypeNavigator(state: _state, navigatorKey: _navigatorKey)
+        : null;
 
     return MaterialApp(
       title: 'PutMind',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       scaffoldMessengerKey: _messengerKey,
+      navigatorKey: _navigatorKey,
       builder: (context, child) {
-        return Stack(
+        final content = Stack(
           children: [
             child ?? const SizedBox.shrink(),
             if (prototype != null) prototype,
           ],
         );
+
+        return MobileViewportFrame(child: content);
       },
       home: AnimatedSwitcher(
         duration: const Duration(milliseconds: 180),
