@@ -1,21 +1,83 @@
 import 'dart:ui' show Locale;
 
 enum AppLanguage {
-  english(Locale('en'), 'English'),
-  japanese(Locale('ja'), '日本語'),
-  german(Locale('de'), 'Deutsch'),
-  vietnamese(Locale('vi'), 'Tiếng Việt'),
-  korean(Locale('ko'), '한국어'),
-  french(Locale('fr'), 'Français'),
-  spanish(Locale('es'), 'Español'),
-  portugueseBrazil(Locale('pt', 'BR'), 'Português (Brasil)'),
-  italian(Locale('it'), 'Italiano'),
-  traditionalChineseHant(Locale('zh', 'Hant'), '繁體中文');
+  /// locale tag for UI (Flutter localization)
+  english(
+    Locale('en'),
+    'English',
+    voiceGuidanceLocale: 'en-US',
+    speechToTextLocale: 'en-US',
+  ),
+  japanese(
+    Locale('ja'),
+    '日本語',
+    voiceGuidanceLocale: 'ja-JP',
+    speechToTextLocale: 'ja-JP',
+  ),
+  german(
+    Locale('de'),
+    'Deutsch',
+    voiceGuidanceLocale: 'de-DE',
+    speechToTextLocale: 'de-DE',
+  ),
+  vietnamese(
+    Locale('vi'),
+    'Tiếng Việt',
+    voiceGuidanceLocale: 'vi-VN',
+    speechToTextLocale: 'vi-VN',
+  ),
+  korean(
+    Locale('ko'),
+    '한국어',
+    voiceGuidanceLocale: 'ko-KR',
+    speechToTextLocale: 'ko-KR',
+  ),
+  french(
+    Locale('fr'),
+    'Français',
+    voiceGuidanceLocale: 'fr-FR',
+    speechToTextLocale: 'fr-FR',
+  ),
+  spanish(
+    Locale('es'),
+    'Español',
+    voiceGuidanceLocale: 'es-ES',
+    speechToTextLocale: 'es-ES',
+  ),
+  portugueseBrazil(
+    Locale('pt', 'BR'),
+    'Português (Brasil)',
+    voiceGuidanceLocale: 'pt-BR',
+    speechToTextLocale: 'pt-BR',
+  ),
+  italian(
+    Locale('it'),
+    'Italiano',
+    voiceGuidanceLocale: 'it-IT',
+    speechToTextLocale: 'it-IT',
+  ),
+  traditionalChineseHant(
+    Locale('zh', 'Hant'),
+    '繁體中文',
+    voiceGuidanceLocale: 'zh-TW',
+    speechToTextLocale: 'zh-TW',
+  );
 
-  const AppLanguage(this.locale, this.label);
+  const AppLanguage(
+    this.locale,
+    this.label, {
+    required this.voiceGuidanceLocale,
+    required this.speechToTextLocale,
+  });
 
   final Locale locale;
   final String label;
+
+  /// Locale tag for future voice guidance assets/tts selection.
+  final String voiceGuidanceLocale;
+
+  /// Locale tag for future speech-to-text recognition selection.
+  final String speechToTextLocale;
 }
 
 enum AutoLockInterval { immediately, oneMinute, fiveMinutes, fifteenMinutes }
