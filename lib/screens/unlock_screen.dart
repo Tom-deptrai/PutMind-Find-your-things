@@ -5,6 +5,7 @@ import '../state/app_state.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_radius.dart';
 import '../theme/app_typography.dart';
+import '../l10n/app_localizations.dart';
 
 class UnlockScreen extends StatelessWidget {
   const UnlockScreen({super.key, required this.state});
@@ -63,10 +64,13 @@ class _BiometricUnlock extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 20),
-        const Text('Unlock PutMind', style: AppTypography.unlockTitle),
+        Text(
+          AppLocalizations.of(context)!.unlockTitle,
+          style: AppTypography.unlockTitle,
+        ),
         const SizedBox(height: 7),
-        const Text(
-          'Your memories stay private until you unlock the app.',
+        Text(
+          AppLocalizations.of(context)!.unlockSubtitle,
           style: AppTypography.body,
           textAlign: TextAlign.center,
         ),
@@ -81,15 +85,15 @@ class _BiometricUnlock extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppRadius.lg),
               ),
             ),
-            child: const Text('Unlock with biometrics'),
+            child: Text(AppLocalizations.of(context)!.unlockWithBiometrics),
           ),
         ),
         const SizedBox(height: 13),
         TextButton(
           onPressed: state.showPinEntry,
-          child: const Text(
-            'Use PIN instead',
-            style: TextStyle(fontSize: 13, color: AppColors.ink),
+          child: Text(
+            AppLocalizations.of(context)!.unlockUsePin,
+            style: const TextStyle(fontSize: 13, color: AppColors.ink),
           ),
         ),
         const SizedBox(height: 28),
@@ -111,14 +115,17 @@ class _PinFallback extends StatelessWidget {
           alignment: Alignment.centerLeft,
           child: TextButton(
             onPressed: state.hidePinEntry,
-            child: const Text('Back'),
+            child: Text(AppLocalizations.of(context)!.pinBack),
           ),
         ),
         const Spacer(),
-        const Text('Enter PIN', style: AppTypography.unlockTitle),
+        Text(
+          AppLocalizations.of(context)!.enterPin,
+          style: AppTypography.unlockTitle,
+        ),
         const SizedBox(height: 8),
-        const Text(
-          'Step 1 mock: any 4 digits unlock.',
+        Text(
+          AppLocalizations.of(context)!.pinMockText,
           style: AppTypography.body,
           textAlign: TextAlign.center,
         ),

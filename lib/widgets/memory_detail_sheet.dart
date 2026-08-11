@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../models/memory.dart';
-import '../models/settings.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_radius.dart';
 import '../theme/app_typography.dart';
+import '../l10n/app_localizations.dart';
+import '../utils/memory_time_format.dart';
 import 'photo_placeholder.dart';
 
 Future<void> showMemoryDetailSheet({
@@ -65,8 +66,16 @@ Future<void> showMemoryDetailSheet({
                 Padding(
                   padding: const EdgeInsets.only(top: 6, bottom: 12),
                   child: Text(
-                    'Saved ${formatMemoryTimestamp(memory.createdAt).toLowerCase()}'
-                    '${memory.updatedAt != memory.createdAt ? ' · Updated ${formatMemoryTimestamp(memory.updatedAt).toLowerCase()}' : ''}',
+                    memory.updatedAt == memory.createdAt
+                        ? AppLocalizations.of(context)!.memoryDetailSaved(
+                            formatMemoryTimestamp(context, memory.createdAt),
+                          )
+                        : AppLocalizations.of(
+                            context,
+                          )!.memoryDetailSavedUpdated(
+                            formatMemoryTimestamp(context, memory.createdAt),
+                            formatMemoryTimestamp(context, memory.updatedAt),
+                          ),
                     style: AppTypography.meta,
                   ),
                 ),
@@ -84,7 +93,9 @@ Future<void> showMemoryDetailSheet({
                             borderRadius: BorderRadius.circular(13),
                           ),
                         ),
-                        child: const Text('Edit'),
+                        child: Text(
+                          AppLocalizations.of(context)!.memoryDetailEdit,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -100,7 +111,11 @@ Future<void> showMemoryDetailSheet({
                             borderRadius: BorderRadius.circular(13),
                           ),
                         ),
-                        child: const Text('Replace photo'),
+                        child: Text(
+                          AppLocalizations.of(
+                            context,
+                          )!.memoryDetailReplacePhoto,
+                        ),
                       ),
                     ),
                   ],
@@ -118,7 +133,7 @@ Future<void> showMemoryDetailSheet({
                       borderRadius: BorderRadius.circular(13),
                     ),
                   ),
-                  child: const Text('Delete'),
+                  child: Text(AppLocalizations.of(context)!.memoryDetailDelete),
                 ),
               ],
             ),

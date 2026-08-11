@@ -9,6 +9,8 @@ import '../widgets/app_dialogs.dart';
 import '../widgets/app_icon_button.dart';
 import '../widgets/app_switch.dart';
 import '../widgets/settings_widgets.dart';
+import '../l10n/app_localizations.dart';
+import '../utils/memory_time_format.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key, required this.state});
@@ -23,20 +25,26 @@ class SettingsScreen extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const ListTile(
+              ListTile(
                 title: Text(
-                  'Language',
-                  style: TextStyle(fontWeight: FontWeight.w700),
+                  AppLocalizations.of(context)!.languagePickerTitle,
+                  style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
               ),
-              for (final lang in AppLanguage.values)
-                ListTile(
-                  title: Text(lang.label),
-                  trailing: state.settings.language == lang
-                      ? const Icon(Icons.check, color: AppColors.accent)
-                      : null,
-                  onTap: () => Navigator.pop(context, lang),
+              Expanded(
+                child: ListView(
+                  children: [
+                    for (final lang in AppLanguage.values)
+                      ListTile(
+                        title: Text(lang.label),
+                        trailing: state.settings.language == lang
+                            ? const Icon(Icons.check, color: AppColors.accent)
+                            : null,
+                        onTap: () => Navigator.pop(context, lang),
+                      ),
+                  ],
                 ),
+              ),
             ],
           ),
         );
@@ -53,20 +61,26 @@ class SettingsScreen extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const ListTile(
+              ListTile(
                 title: Text(
-                  'Auto-lock',
-                  style: TextStyle(fontWeight: FontWeight.w700),
+                  AppLocalizations.of(context)!.autoLockPickerTitle,
+                  style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
               ),
-              for (final interval in AutoLockInterval.values)
-                ListTile(
-                  title: Text(interval.label),
-                  trailing: state.settings.autoLock == interval
-                      ? const Icon(Icons.check, color: AppColors.accent)
-                      : null,
-                  onTap: () => Navigator.pop(context, interval),
+              Expanded(
+                child: ListView(
+                  children: [
+                    for (final interval in AutoLockInterval.values)
+                      ListTile(
+                        title: Text(_autoLockLabel(context, interval)),
+                        trailing: state.settings.autoLock == interval
+                            ? const Icon(Icons.check, color: AppColors.accent)
+                            : null,
+                        onTap: () => Navigator.pop(context, interval),
+                      ),
+                  ],
                 ),
+              ),
             ],
           ),
         );
@@ -92,6 +106,7 @@ class SettingsScreen extends StatelessWidget {
     await showModalBottomSheet<void>(
       context: context,
       builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
@@ -99,22 +114,19 @@ class SettingsScreen extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text(
-                  'Backup & Restore',
+                Text(
+                  l10n.backupSheetTitle,
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Encrypted backup connects in a later step. These actions are UI mocks for review.',
-                  style: AppTypography.body,
-                ),
+                Text(l10n.backupSheetBody, style: AppTypography.body),
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () {
                     Navigator.pop(context);
                     state.mockCreateBackup();
                   },
-                  child: const Text('Create Backup'),
+                  child: Text(l10n.createBackup),
                 ),
                 const SizedBox(height: 8),
                 OutlinedButton(
@@ -122,7 +134,7 @@ class SettingsScreen extends StatelessWidget {
                     Navigator.pop(context);
                     state.mockRestoreBackup();
                   },
-                  child: const Text('Restore Backup'),
+                  child: Text(l10n.restoreBackup),
                 ),
               ],
             ),
@@ -136,19 +148,14 @@ class SettingsScreen extends StatelessWidget {
     await showDialog<void>(
       context: context,
       builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
         return AlertDialog(
-          title: const Text('Privacy'),
-          content: const Text(
-            'Your memories stay yours.\n\n'
-            'PutMind is local-first: no account, no PutMind cloud database, '
-            'and no photo upload to PutMind servers in the MVP.\n\n'
-            'Speech prefers on-device recognition. Backup files are managed by you.',
-            style: AppTypography.body,
-          ),
+          title: Text(l10n.privacyDialogTitle),
+          content: Text(l10n.privacyDialogBody, style: AppTypography.body),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Close'),
+              child: Text(l10n.close),
             ),
           ],
         );
@@ -160,18 +167,14 @@ class SettingsScreen extends StatelessWidget {
     await showDialog<void>(
       context: context,
       builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
         return AlertDialog(
-          title: const Text('About PutMind'),
-          content: const Text(
-            'PutMind: Find Your Things\n'
-            'Snap it. Say where. Find it later.\n\n'
-            'Version 1.0.0 (Step 1 — UI foundation)',
-            style: AppTypography.body,
-          ),
+          title: Text(l10n.aboutDialogTitle),
+          content: Text(l10n.aboutDialogBody, style: AppTypography.body),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Close'),
+              child: Text(l10n.close),
             ),
           ],
         );
@@ -187,22 +190,21 @@ class SettingsScreen extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
         return AlertDialog(
-          title: const Text('Turn on App Lock?'),
-          content: const Text(
-            'Biometric unlock with PIN fallback will protect your memories on this device.\n\n'
-            'PutMind has no account/backend, so a forgotten PIN cannot be reset by email. '
-            'If biometric still works, unlock → Settings → change PIN.',
+          title: Text(l10n.turnOnAppLockDialogTitle),
+          content: Text(
+            l10n.turnOnAppLockDialogBody,
             style: AppTypography.body,
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
+              child: Text(l10n.cancel),
             ),
             ElevatedButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Enable'),
+              child: Text(l10n.enable),
             ),
           ],
         );
@@ -211,10 +213,25 @@ class SettingsScreen extends StatelessWidget {
     if (confirmed == true) state.setAppLock(true);
   }
 
+  String _autoLockLabel(BuildContext context, AutoLockInterval interval) {
+    final l10n = AppLocalizations.of(context)!;
+    return switch (interval) {
+      AutoLockInterval.immediately => l10n.autoLockImmediately,
+      AutoLockInterval.oneMinute => l10n.autoLockOneMinute,
+      AutoLockInterval.fiveMinutes => l10n.autoLockFiveMinutes,
+      AutoLockInterval.fifteenMinutes => l10n.autoLockFifteenMinutes,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = state.settings;
     final bottom = MediaQuery.paddingOf(context).bottom;
+    final l10n = AppLocalizations.of(context)!;
+    final timeOfDay = TimeOfDay(hour: s.reminderHour, minute: s.reminderMinute);
+    final timeLabel = MaterialLocalizations.of(
+      context,
+    ).formatTimeOfDay(timeOfDay);
 
     return Scaffold(
       backgroundColor: AppColors.white,
@@ -232,9 +249,9 @@ class SettingsScreen extends StatelessWidget {
                       icon: Icons.arrow_back,
                       onPressed: state.openHome,
                     ),
-                    const Expanded(
+                    Expanded(
                       child: Text(
-                        'Settings',
+                        l10n.settingsTitle,
                         textAlign: TextAlign.center,
                         style: AppTypography.screenTitle,
                       ),
@@ -259,9 +276,9 @@ class SettingsScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'PutMind Lifetime',
-                          style: TextStyle(
+                        Text(
+                          l10n.lifetimeCardTitle,
+                          style: const TextStyle(
                             fontWeight: FontWeight.w700,
                             color: AppColors.ink,
                           ),
@@ -269,34 +286,37 @@ class SettingsScreen extends StatelessWidget {
                         const SizedBox(height: 2),
                         Text(
                           s.isLifetimeUnlocked
-                              ? 'Unlimited memories unlocked'
-                              : 'Unlimited memories · \$6.99 once · '
-                                    '${state.memoryCount}/$kFreeMemoryLimit used',
+                              ? l10n.lifetimeCardUnlocked
+                              : l10n.lifetimeCardLocked(
+                                  kFreeMemoryLimit.toString(),
+                                  r'$6.99',
+                                  state.memoryCount.toString(),
+                                ),
                           style: AppTypography.meta,
                         ),
                       ],
                     ),
                   ),
-                  const SettingsGroupLabel('General'),
+                  SettingsGroupLabel(l10n.settingsGroupGeneral),
                   SettingsRow(
-                    title: 'Language',
-                    subtitle: 'App, voice guidance & speech locale',
+                    title: l10n.settingsLanguageRowTitle,
+                    subtitle: l10n.settingsLanguageRowSubtitle,
                     trailing: SettingsPill('${s.language.label} ›'),
                     onTap: () => _pickLanguage(context),
                   ),
                   SettingsRow(
-                    title: 'Voice Guidance',
-                    subtitle: 'Prompt before listening',
+                    title: l10n.settingsVoiceGuidanceRowTitle,
+                    subtitle: l10n.settingsVoiceGuidanceRowSubtitle,
                     trailing: AppSwitch(
                       value: s.voiceGuidance,
                       onChanged: state.setVoiceGuidance,
                     ),
                   ),
                   SettingsRow(
-                    title: 'Daily Reminder',
+                    title: l10n.settingsDailyReminderRowTitle,
                     subtitle: s.dailyReminder
-                        ? 'On · ${s.reminderTimeLabel}'
-                        : 'Off · suggested 9:00 PM',
+                        ? '${l10n.settingsDailyReminderOn} · $timeLabel'
+                        : l10n.settingsDailyReminderOffSuggested,
                     trailing: AppSwitch(
                       value: s.dailyReminder,
                       onChanged: (v) async {
@@ -308,47 +328,49 @@ class SettingsScreen extends StatelessWidget {
                         ? () => _pickReminderTime(context)
                         : null,
                   ),
-                  const SettingsGroupLabel('Privacy & security'),
+                  SettingsGroupLabel(l10n.settingsGroupPrivacySecurity),
                   SettingsRow(
-                    title: 'App Lock',
-                    subtitle: 'Biometric with PIN fallback',
+                    title: l10n.settingsAppLockRowTitle,
+                    subtitle: l10n.settingsAppLockRowSubtitle,
                     trailing: AppSwitch(
                       value: s.appLock,
                       onChanged: (v) => _confirmAppLock(context, v),
                     ),
                   ),
                   SettingsRow(
-                    title: 'Auto-lock',
-                    trailing: SettingsPill('${s.autoLock.label} ›'),
+                    title: l10n.settingsAutoLockRowTitle,
+                    trailing: SettingsPill(
+                      '${_autoLockLabel(context, s.autoLock)} ›',
+                    ),
                     onTap: () => _pickAutoLock(context),
                   ),
                   SettingsRow(
-                    title: 'Privacy',
+                    title: l10n.settingsPrivacyRowTitle,
                     trailing: const Text('›'),
                     onTap: () => _showPrivacy(context),
                   ),
-                  const SettingsGroupLabel('Backup & purchase'),
+                  SettingsGroupLabel(l10n.settingsGroupBackupPurchase),
                   SettingsRow(
-                    title: 'Backup & Restore',
+                    title: l10n.settingsBackupRestoreRowTitle,
                     trailing: const Text('›'),
                     onTap: () => _showBackupSheet(context),
                   ),
                   SettingsRow(
-                    title: 'Last Backup',
+                    title: l10n.settingsLastBackupRowTitle,
                     trailing: Text(
-                      s.lastBackupLabel,
+                      s.lastBackupAt == null
+                          ? l10n.never
+                          : formatMemoryTimestamp(context, s.lastBackupAt!),
                       style: AppTypography.meta,
                     ),
                   ),
                   SettingsRow(
-                    title: 'Upgrade Lifetime',
+                    title: l10n.settingsUpgradeLifetimeRowTitle,
                     trailing: const Text('›'),
                     onTap: () async {
                       if (s.isLifetimeUnlocked) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Lifetime already unlocked'),
-                          ),
+                          SnackBar(content: Text(l10n.lifetimeAlreadyUnlocked)),
                         );
                         return;
                       }
@@ -359,13 +381,13 @@ class SettingsScreen extends StatelessWidget {
                     },
                   ),
                   SettingsRow(
-                    title: 'Restore Purchase',
+                    title: l10n.settingsRestorePurchaseRowTitle,
                     trailing: const Text('›'),
                     onTap: state.mockRestorePurchase,
                   ),
-                  const SettingsGroupLabel('About'),
+                  SettingsGroupLabel(l10n.settingsGroupAbout),
                   SettingsRow(
-                    title: 'About PutMind',
+                    title: l10n.settingsAboutPutMindRowTitle,
                     trailing: const Text('›'),
                     showDivider: false,
                     onTap: () => _showAbout(context),

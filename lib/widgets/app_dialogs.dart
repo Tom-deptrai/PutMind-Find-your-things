@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_radius.dart';
 import '../theme/app_typography.dart';
+import '../l10n/app_localizations.dart';
 
 Future<bool?> showDeleteMemoryDialog(BuildContext context) {
   return showDialog<bool>(
@@ -19,17 +20,17 @@ Future<bool?> showDeleteMemoryDialog(BuildContext context) {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
-                'Delete this memory?',
-                style: TextStyle(
+              Text(
+                AppLocalizations.of(context)!.deleteDialogTitle,
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                   color: AppColors.ink,
                 ),
               ),
               const SizedBox(height: 6),
-              const Text(
-                'This removes the photo and memory from this device.',
+              Text(
+                AppLocalizations.of(context)!.deleteDialogBody,
                 style: AppTypography.body,
               ),
               const SizedBox(height: 10),
@@ -39,12 +40,12 @@ Future<bool?> showDeleteMemoryDialog(BuildContext context) {
                   backgroundColor: AppColors.danger,
                   minimumSize: const Size.fromHeight(45),
                 ),
-                child: const Text('Delete memory'),
+                child: Text(AppLocalizations.of(context)!.deleteMemory),
               ),
               const SizedBox(height: 8),
               OutlinedButton(
                 onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Cancel'),
+                child: Text(AppLocalizations.of(context)!.cancel),
               ),
             ],
           ),
@@ -72,23 +73,26 @@ Future<void> showPaywallDialog({
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
-                'Unlock unlimited memories',
-                style: TextStyle(
+              Text(
+                AppLocalizations.of(context)!.paywallTitle,
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                   color: AppColors.ink,
                 ),
               ),
               const SizedBox(height: 6),
-              const Text(
-                'You’ve reached the free limit of 20 memories. Existing memories remain available.',
+              Text(
+                AppLocalizations.of(context)!.paywallBody,
                 style: AppTypography.body,
               ),
               const SizedBox(height: 10),
-              const Text(r'$6.99', style: AppTypography.price),
-              const Text(
-                'Lifetime · one-time purchase',
+              Text(
+                AppLocalizations.of(context)!.paywallPrice,
+                style: AppTypography.price,
+              ),
+              Text(
+                AppLocalizations.of(context)!.paywallLifetimeLabel,
                 style: AppTypography.meta,
               ),
               const SizedBox(height: 14),
@@ -97,7 +101,9 @@ Future<void> showPaywallDialog({
                   Navigator.of(context).pop();
                   onUnlock();
                 },
-                child: const Text('Unlock Lifetime'),
+                child: Text(
+                  AppLocalizations.of(context)!.paywallUnlockLifetime,
+                ),
               ),
             ],
           ),
@@ -117,19 +123,19 @@ Future<void> showEditTranscriptDialog({
     context: context,
     builder: (context) {
       return AlertDialog(
-        title: const Text('Edit memory'),
+        title: Text(AppLocalizations.of(context)!.editMemoryDialogTitle),
         content: TextField(
           controller: controller,
           maxLines: 4,
           autofocus: true,
-          decoration: const InputDecoration(
-            hintText: 'What is this? Where did you put it?',
+          decoration: InputDecoration(
+            hintText: AppLocalizations.of(context)!.editMemoryHint,
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -137,7 +143,7 @@ Future<void> showEditTranscriptDialog({
               Navigator.of(context).pop();
               if (text.isNotEmpty) onSave(text);
             },
-            child: const Text('Save'),
+            child: Text(AppLocalizations.of(context)!.editMemorySave),
           ),
         ],
       );

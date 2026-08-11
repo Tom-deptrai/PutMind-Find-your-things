@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../models/memory.dart';
-import '../models/settings.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_radius.dart';
 import '../theme/app_typography.dart';
 import 'photo_placeholder.dart';
+import '../utils/memory_time_format.dart';
 
 class MemoryCard extends StatelessWidget {
   const MemoryCard({super.key, required this.memory, required this.onTap});
@@ -57,7 +57,7 @@ class MemoryCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 7),
                     Text(
-                      formatMemoryTimestamp(memory.updatedAt),
+                      formatMemoryTimestamp(context, memory.updatedAt),
                       style: AppTypography.meta,
                     ),
                   ],

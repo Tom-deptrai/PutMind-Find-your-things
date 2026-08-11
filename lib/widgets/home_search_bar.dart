@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_radius.dart';
 import '../theme/app_typography.dart';
+import '../l10n/app_localizations.dart';
 
 class HomeSearchBar extends StatelessWidget {
   const HomeSearchBar({
@@ -36,13 +37,13 @@ class HomeSearchBar extends StatelessWidget {
               controller: controller,
               onChanged: onChanged,
               textInputAction: TextInputAction.search,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 isDense: true,
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,
                 filled: false,
-                hintText: 'Find your things',
+                hintText: AppLocalizations.of(context)!.homeSearchPlaceholder,
                 hintStyle: TextStyle(color: AppColors.muted, fontSize: 15),
                 contentPadding: EdgeInsets.zero,
               ),
@@ -51,7 +52,7 @@ class HomeSearchBar extends StatelessWidget {
           ),
           IconButton(
             onPressed: onMicPressed,
-            tooltip: 'Voice search',
+            tooltip: AppLocalizations.of(context)!.voiceSearchTooltip,
             icon: const Icon(Icons.mic_none_rounded, color: AppColors.ink),
             visualDensity: VisualDensity.compact,
           ),

@@ -4,6 +4,7 @@ import '../state/app_state.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_radius.dart';
 import '../theme/app_typography.dart';
+import '../l10n/app_localizations.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key, required this.state});
@@ -17,26 +18,8 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   int _step = 0;
 
-  static const _steps = [
-    (
-      title: 'Snap it.',
-      body:
-          'Take a quick photo of the thing you’re putting away. No forms, folders or categories.',
-    ),
-    (
-      title: 'Say where you put it.',
-      body:
-          'Speak naturally — or type — what it is and where you stored it. Voice Guidance helps you say both.',
-    ),
-    (
-      title: 'Find it later.',
-      body:
-          'Search your memories when you need something. PutMind remembers so you don’t have to.',
-    ),
-  ];
-
   void _next() {
-    if (_step < _steps.length - 1) {
+    if (_step < 2) {
       setState(() => _step += 1);
     } else {
       widget.state.completeOnboarding();
@@ -45,8 +28,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final step = _steps[_step];
+    final l10n = AppLocalizations.of(context)!;
     final bottom = MediaQuery.paddingOf(context).bottom;
+
+    final title = switch (_step) {
+      0 => l10n.onboardingSnapTitle,
+      1 => l10n.onboardingSayWhereTitle,
+      _ => l10n.onboardingFindLaterTitle,
+    };
+
+    final body = switch (_step) {
+      0 => l10n.onboardingSnapBody,
+      1 => l10n.onboardingSayWhereBody,
+      _ => l10n.onboardingFindLaterBody,
+    };
+
+    final stepCount = 3;
 
     return Scaffold(
       backgroundColor: AppColors.white,
@@ -86,20 +83,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
               const SizedBox(height: 27),
               Text(
-                step.title,
+                title,
                 style: AppTypography.onboardingTitle,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               Text(
-                step.body,
+                body,
                 style: AppTypography.body,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(_steps.length, (i) {
+                children: List.generate(stepCount, (i) {
                   final active = i == _step;
                   return AnimatedContainer(
                     duration: const Duration(milliseconds: 180),
@@ -125,7 +122,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
                   ),
                   child: Text(
-                    _step == _steps.length - 1 ? 'Get started' : 'Continue',
+                    _step == stepCount - 1
+                        ? l10n.onboardingGetStarted
+                        : l10n.onboardingContinue,
                   ),
                 ),
               ),

@@ -883,12 +883,18 @@ Sau này tìm “Cáp Sony” → thấy Memory cho biết **Box 17**.
 
 ## 33. Ngôn ngữ MVP
 
-Chốt 4 ngôn ngữ ban đầu:
+Chốt 10 ngôn ngữ chính thức cho MVP:
 
-1. English
-2. Japanese
-3. German
-4. Vietnamese
+1. English — `en`
+2. 日本語 — Japanese — `ja`
+3. Deutsch — German — `de`
+4. Tiếng Việt — Vietnamese — `vi`
+5. 한국어 — Korean — `ko`
+6. Français — French — `fr`
+7. Español — Spanish — `es`
+8. Português — Brazilian Portuguese — `pt-BR`
+9. Italiano — Italian — `it`
+10. 繁體中文 — Traditional Chinese — `zh-Hant` / `zh-TW`
 
 UI phải được thiết kế localization-ready từ đầu:
 
@@ -899,14 +905,7 @@ UI phải được thiết kế localization-ready từ đầu:
 
 ### Mở rộng sau MVP
 
-Có thể ưu tiên:
-
-- Korean
-- French
-- Spanish
-- Portuguese
-- Italian
-- Traditional Chinese
+Những ngôn ngữ này đã được đưa vào MVP 1.0 ở quyết định mới, do đó không còn nằm trong danh sách mở rộng riêng cho giai đoạn sau.
 
 ---
 

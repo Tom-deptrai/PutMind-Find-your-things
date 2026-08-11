@@ -1,25 +1,24 @@
+import 'dart:ui' show Locale;
+
 enum AppLanguage {
-  english('en', 'English'),
-  japanese('ja', '日本語'),
-  german('de', 'Deutsch'),
-  vietnamese('vi', 'Tiếng Việt');
+  english(Locale('en'), 'English'),
+  japanese(Locale('ja'), '日本語'),
+  german(Locale('de'), 'Deutsch'),
+  vietnamese(Locale('vi'), 'Tiếng Việt'),
+  korean(Locale('ko'), '한국어'),
+  french(Locale('fr'), 'Français'),
+  spanish(Locale('es'), 'Español'),
+  portugueseBrazil(Locale('pt', 'BR'), 'Português (Brasil)'),
+  italian(Locale('it'), 'Italiano'),
+  traditionalChineseHant(Locale('zh', 'Hant'), '繁體中文');
 
-  const AppLanguage(this.code, this.label);
+  const AppLanguage(this.locale, this.label);
 
-  final String code;
+  final Locale locale;
   final String label;
 }
 
-enum AutoLockInterval {
-  immediately('Immediately'),
-  oneMinute('After 1 minute'),
-  fiveMinutes('After 5 minutes'),
-  fifteenMinutes('After 15 minutes');
-
-  const AutoLockInterval(this.label);
-
-  final String label;
-}
+enum AutoLockInterval { immediately, oneMinute, fiveMinutes, fifteenMinutes }
 
 /// Settings state for MVP UI (native wiring comes in later steps).
 class AppSettings {
@@ -46,18 +45,6 @@ class AppSettings {
   final bool isLifetimeUnlocked;
   final DateTime? lastBackupAt;
   final bool onboardingCompleted;
-
-  String get reminderTimeLabel {
-    final h = reminderHour % 12 == 0 ? 12 : reminderHour % 12;
-    final amPm = reminderHour >= 12 ? 'PM' : 'AM';
-    final m = reminderMinute.toString().padLeft(2, '0');
-    return '$h:$m $amPm';
-  }
-
-  String get lastBackupLabel {
-    if (lastBackupAt == null) return 'Never';
-    return formatMemoryTimestamp(lastBackupAt!);
-  }
 
   AppSettings copyWith({
     AppLanguage? language,
@@ -87,40 +74,4 @@ class AppSettings {
       onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
     );
   }
-}
-
-String formatMemoryTimestamp(DateTime dateTime, {DateTime? now}) {
-  final current = now ?? DateTime.now();
-  final local = dateTime.toLocal();
-  final today = DateTime(current.year, current.month, current.day);
-  final thatDay = DateTime(local.year, local.month, local.day);
-  final time = _formatTime(local);
-
-  if (thatDay == today) return 'Today, $time';
-  if (thatDay == today.subtract(const Duration(days: 1))) {
-    return 'Yesterday, $time';
-  }
-
-  const months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
-  return '${months[local.month - 1]} ${local.day}, $time';
-}
-
-String _formatTime(DateTime dt) {
-  final h = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
-  final amPm = dt.hour >= 12 ? 'PM' : 'AM';
-  final m = dt.minute.toString().padLeft(2, '0');
-  return '$h:$m $amPm';
 }

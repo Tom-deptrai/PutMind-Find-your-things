@@ -10,6 +10,7 @@ import 'screens/unlock_screen.dart';
 import 'state/app_state.dart';
 import 'theme/app_theme.dart';
 import 'widgets/mobile_viewport_frame.dart';
+import 'l10n/app_localizations.dart';
 
 class PutMindApp extends StatefulWidget {
   const PutMindApp({super.key, this.state});
@@ -80,6 +81,9 @@ class _PutMindAppState extends State<PutMindApp> {
       theme: AppTheme.light(),
       scaffoldMessengerKey: _messengerKey,
       navigatorKey: _navigatorKey,
+      locale: _state.settings.language.locale,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       builder: (context, child) {
         final content = Stack(
           children: [

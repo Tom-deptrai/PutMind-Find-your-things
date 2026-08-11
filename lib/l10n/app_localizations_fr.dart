@@ -1,0 +1,394 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for French (`fr`).
+class AppLocalizationsFr extends AppLocalizations {
+  AppLocalizationsFr([String locale = 'fr']) : super(locale);
+
+  @override
+  String get homeSearchPlaceholder => 'Trouve tes affaires';
+
+  @override
+  String get homeRecentMemories => 'Dernières mémoires';
+
+  @override
+  String get homeNoMemoriesMatch =>
+      'Aucune mémoire ne correspond à ta recherche.';
+
+  @override
+  String get homeEmptyTitle => 'Tes affaires apparaîtront ici.';
+
+  @override
+  String get homeEmptyBody =>
+      'Prends une photo et dis à PutMind où tu les as rangées.';
+
+  @override
+  String get settingsTooltip => 'Paramètres';
+
+  @override
+  String get captureTitle => 'Capture';
+
+  @override
+  String get capturePromptTitle => 'Qu’est-ce que c’est ? Où l’as-tu rangé ?';
+
+  @override
+  String get voiceGuidanceLabel => 'Guidage vocal';
+
+  @override
+  String get voiceGuidanceOn => 'Actif';
+
+  @override
+  String get voiceGuidanceOff => 'Désactivé';
+
+  @override
+  String get capturePromptPreview =>
+      'Prends une photo, puis dis ou tape où tu l’as rangé(e).';
+
+  @override
+  String get capturePromptGuiding => 'Lecture du guidage vocal…';
+
+  @override
+  String get capturePromptListening =>
+      'J’écoute… parle naturellement, ou tape plutôt.';
+
+  @override
+  String get capturePromptEditing =>
+      'Vérifie la transcription, puis enregistre.';
+
+  @override
+  String get captureTranscriptHint => 'Tape ici si tu préfères…';
+
+  @override
+  String get captureRetake => 'Reprendre';
+
+  @override
+  String get captureSave => 'Enregistrer la mémoire';
+
+  @override
+  String get captureSnapMessage => 'Prends une photo de ce que tu ranges.';
+
+  @override
+  String get settingsTitle => 'Paramètres';
+
+  @override
+  String get settingsGroupGeneral => 'Général';
+
+  @override
+  String get settingsGroupPrivacySecurity => 'Confidentialité & sécurité';
+
+  @override
+  String get settingsGroupBackupPurchase => 'Sauvegarde & achat';
+
+  @override
+  String get settingsGroupAbout => 'À propos';
+
+  @override
+  String get settingsLanguageRowTitle => 'Langue';
+
+  @override
+  String get settingsLanguageRowSubtitle =>
+      'App, guidage vocal et langue de reconnaissance';
+
+  @override
+  String get settingsVoiceGuidanceRowTitle => 'Guidage vocal';
+
+  @override
+  String get settingsVoiceGuidanceRowSubtitle => 'Texte avant l’écoute';
+
+  @override
+  String get settingsDailyReminderRowTitle => 'Rappel quotidien';
+
+  @override
+  String get settingsDailyReminderOn => 'Activé';
+
+  @override
+  String get settingsDailyReminderOffSuggested => 'Désactivé · suggéré 21:00';
+
+  @override
+  String get settingsAppLockRowTitle => 'Verrouillage de l’app';
+
+  @override
+  String get settingsAppLockRowSubtitle => 'Biométrie avec secours par PIN';
+
+  @override
+  String get settingsAutoLockRowTitle => 'Verrouillage automatique';
+
+  @override
+  String get settingsPrivacyRowTitle => 'Confidentialité';
+
+  @override
+  String get settingsBackupRestoreRowTitle => 'Sauvegarde & restauration';
+
+  @override
+  String get settingsLastBackupRowTitle => 'Dernière sauvegarde';
+
+  @override
+  String get settingsUpgradeLifetimeRowTitle => 'Pass Lifetime';
+
+  @override
+  String get settingsRestorePurchaseRowTitle => 'Restaurer l’achat';
+
+  @override
+  String get settingsAboutPutMindRowTitle => 'À propos de PutMind';
+
+  @override
+  String get languagePickerTitle => 'Langue';
+
+  @override
+  String get autoLockPickerTitle => 'Verrouillage automatique';
+
+  @override
+  String get backupSheetTitle => 'Sauvegarde & restauration';
+
+  @override
+  String get backupSheetBody =>
+      'La sauvegarde chiffrée se connectera dans une étape ultérieure. Actions UI de démonstration.';
+
+  @override
+  String get createBackup => 'Créer une sauvegarde';
+
+  @override
+  String get restoreBackup => 'Restaurer la sauvegarde';
+
+  @override
+  String get privacyDialogTitle => 'Confidentialité';
+
+  @override
+  String get privacyDialogBody =>
+      'Tes mémoires restent les tiennes.\n\nPutMind est local-first : pas de compte, pas de base de données cloud PutMind, et pas d’envoi de photos vers les serveurs PutMind dans le MVP.\n\nLa reconnaissance audio privilégie l’exécution sur l’appareil. Les fichiers de sauvegarde sont gérés par toi.';
+
+  @override
+  String get aboutDialogTitle => 'À propos de PutMind';
+
+  @override
+  String get aboutDialogBody =>
+      'PutMind: Find Your Things\nSnap it. Say where. Find it later.\n\nVersion 1.0.0 (Step 1 — UI foundation)';
+
+  @override
+  String get close => 'Fermer';
+
+  @override
+  String get turnOnAppLockDialogTitle => 'Activer le verrouillage de l’app ?';
+
+  @override
+  String get turnOnAppLockDialogBody =>
+      'Le déverrouillage biométrique avec secours par PIN protégera tes mémoires sur cet appareil.\n\nPutMind n’a pas de compte/backend : un PIN oublié ne peut pas être réinitialisé par email. Si la biométrie fonctionne encore : déverrouiller → Paramètres → changer le PIN.';
+
+  @override
+  String get cancel => 'Annuler';
+
+  @override
+  String get enable => 'Activer';
+
+  @override
+  String get lifetimeCardTitle => 'PutMind Lifetime';
+
+  @override
+  String get lifetimeCardUnlocked => 'Mémoires illimitées débloquées';
+
+  @override
+  String get lifetimeAlreadyUnlocked => 'Lifetime est déjà débloqué';
+
+  @override
+  String get unlockTitle => 'Déverrouiller PutMind';
+
+  @override
+  String get unlockSubtitle =>
+      'Tes mémoires restent privées jusqu’à ce que tu déverrouilles l’app.';
+
+  @override
+  String get unlockWithBiometrics => 'Déverrouiller avec biométrie';
+
+  @override
+  String get unlockUsePin => 'Utiliser le PIN à la place';
+
+  @override
+  String get pinBack => 'Retour';
+
+  @override
+  String get enterPin => 'Entrer le PIN';
+
+  @override
+  String get pinMockText =>
+      'Mock étape 1 : n’importe quels 4 chiffres déverrouillent.';
+
+  @override
+  String get onboardingSnapTitle => 'Prends une photo.';
+
+  @override
+  String get onboardingSnapBody =>
+      'Prends rapidement une photo de l’objet que tu ranges. Pas de formulaires, dossiers ni catégories.';
+
+  @override
+  String get onboardingSayWhereTitle => 'Dis où tu l’as rangé(e).';
+
+  @override
+  String get onboardingSayWhereBody =>
+      'Parle naturellement — ou tape — ce que c’est et où tu l’as stocké. Le guidage vocal t’aide pour les deux.';
+
+  @override
+  String get onboardingFindLaterTitle => 'Retrouve-le plus tard.';
+
+  @override
+  String get onboardingFindLaterBody =>
+      'Cherche dans tes mémoires quand tu as besoin. PutMind s’en souvient pour toi.';
+
+  @override
+  String get onboardingContinue => 'Continuer';
+
+  @override
+  String get onboardingGetStarted => 'Commencer';
+
+  @override
+  String memoryDetailSaved(Object created) {
+    return 'Enregistré $created';
+  }
+
+  @override
+  String memoryDetailSavedUpdated(Object created, Object updated) {
+    return 'Enregistré $created · Mis à jour $updated';
+  }
+
+  @override
+  String get memoryDetailEdit => 'Modifier';
+
+  @override
+  String get memoryDetailReplacePhoto => 'Remplacer la photo';
+
+  @override
+  String get memoryDetailDelete => 'Supprimer';
+
+  @override
+  String get deleteDialogTitle => 'Supprimer cette mémoire ?';
+
+  @override
+  String get deleteDialogBody =>
+      'Cela retire la photo et la mémoire de cet appareil.';
+
+  @override
+  String get deleteMemory => 'Supprimer la mémoire';
+
+  @override
+  String get editMemoryDialogTitle => 'Modifier la mémoire';
+
+  @override
+  String get editMemoryHint => 'C’est quoi ? Où l’as-tu rangé ?';
+
+  @override
+  String get editMemorySave => 'Enregistrer';
+
+  @override
+  String get paywallTitle => 'Débloquer des mémoires illimitées';
+
+  @override
+  String get paywallBody =>
+      'Tu as atteint la limite gratuite de 20 mémoires. Les mémoires existantes restent disponibles.';
+
+  @override
+  String get paywallPrice => '\$6.99';
+
+  @override
+  String get paywallLifetimeLabel => 'Lifetime · achat unique';
+
+  @override
+  String get paywallUnlockLifetime => 'Débloquer Lifetime';
+
+  @override
+  String get prototype => 'Prototype';
+
+  @override
+  String get prototypePreviewStates => 'Aperçu des états';
+
+  @override
+  String get prototypeHint =>
+      'Contrôles de prototype uniquement — pas une partie de l’interface MVP PutMind.';
+
+  @override
+  String get protoHome => 'Accueil';
+
+  @override
+  String get protoCapture => 'Capture';
+
+  @override
+  String get protoSettings => 'Paramètres';
+
+  @override
+  String get protoUnlock => 'Déverrouiller';
+
+  @override
+  String get protoOnboarding => 'Onboarding';
+
+  @override
+  String get protoEmptyHome => 'Accueil vide';
+
+  @override
+  String get protoMemoryDetail => 'Détails mémoire';
+
+  @override
+  String get protoPaywall => 'Paywall';
+
+  @override
+  String get snackMemorySaved => 'Mémoire enregistrée';
+
+  @override
+  String get snackMemoryUpdated => 'Mémoire mise à jour';
+
+  @override
+  String get snackPhotoReplacedMock => 'Photo remplacée (mock)';
+
+  @override
+  String get snackMemoryDeleted => 'Mémoire supprimée';
+
+  @override
+  String get snackAppLockMockInfo =>
+      'Le verrouillage de l’app sera sécurisé plus tard. Pour l’instant : état UI.';
+
+  @override
+  String get snackReminderSchedulingMock =>
+      'Le rappel sera connecté plus tard (mock)';
+
+  @override
+  String get snackBackupCreatedMock => 'Sauvegarde créée (mock)';
+
+  @override
+  String get snackRestoreBackupMock =>
+      'La restauration se connectera plus tard (mock)';
+
+  @override
+  String get snackLifetimeUnlockedMock => 'Lifetime débloqué (achat mock)';
+
+  @override
+  String get snackPurchaseRestoredMock => 'Achat restauré (mock)';
+
+  @override
+  String get today => 'Aujourd’hui';
+
+  @override
+  String get yesterday => 'Hier';
+
+  @override
+  String get voiceSearchTooltip => 'Recherche vocale';
+
+  @override
+  String get autoLockImmediately => 'Immédiatement';
+
+  @override
+  String get autoLockOneMinute => 'Après 1 minute';
+
+  @override
+  String get autoLockFiveMinutes => 'Après 5 minutes';
+
+  @override
+  String get autoLockFifteenMinutes => 'Après 15 minutes';
+
+  @override
+  String get never => 'Jamais';
+
+  @override
+  String lifetimeCardLocked(Object limit, Object price, Object used) {
+    return 'Mémoires illimitées · $price une fois · $used/$limit utilisé';
+  }
+}

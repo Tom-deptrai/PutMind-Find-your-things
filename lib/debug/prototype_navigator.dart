@@ -5,6 +5,7 @@ import '../state/app_state.dart';
 import '../theme/app_colors.dart';
 import '../widgets/app_dialogs.dart';
 import '../widgets/memory_detail_sheet.dart';
+import '../l10n/app_localizations.dart';
 
 /// Development-only prototype navigator (mirrors mobile.html).
 ///
@@ -94,6 +95,7 @@ class _PrototypeNavigatorState extends State<PrototypeNavigator> {
   Widget build(BuildContext context) {
     assert(kDebugMode, 'PrototypeNavigator must not ship in release builds');
     final bottom = MediaQuery.paddingOf(context).bottom;
+    final l10n = AppLocalizations.of(context)!;
 
     return Stack(
       fit: StackFit.expand,
@@ -126,10 +128,10 @@ class _PrototypeNavigatorState extends State<PrototypeNavigator> {
                   children: [
                     Row(
                       children: [
-                        const Expanded(
+                        Expanded(
                           child: Text(
-                            'Preview states',
-                            style: TextStyle(fontWeight: FontWeight.w800),
+                            l10n.prototypePreviewStates,
+                            style: const TextStyle(fontWeight: FontWeight.w800),
                           ),
                         ),
                         InkWell(
@@ -158,40 +160,43 @@ class _PrototypeNavigatorState extends State<PrototypeNavigator> {
                       childAspectRatio: 2.6,
                       children: [
                         _ProtoButton(
-                          label: 'Home',
+                          label: l10n.protoHome,
                           onTap: () => _go(state.prototypeRestoreDemoMemories),
                         ),
                         _ProtoButton(
-                          label: 'Capture',
+                          label: l10n.protoCapture,
                           onTap: () => _go(state.openCapture),
                         ),
                         _ProtoButton(
-                          label: 'Settings',
+                          label: l10n.protoSettings,
                           onTap: () => _go(state.openSettings),
                         ),
                         _ProtoButton(
-                          label: 'Unlock',
+                          label: l10n.protoUnlock,
                           onTap: () => _go(state.prototypeShowUnlock),
                         ),
                         _ProtoButton(
-                          label: 'Onboarding',
+                          label: l10n.protoOnboarding,
                           onTap: () => _go(state.prototypeShowOnboarding),
                         ),
                         _ProtoButton(
-                          label: 'Empty Home',
+                          label: l10n.protoEmptyHome,
                           onTap: () => _go(state.prototypeShowEmptyHome),
                         ),
                         _ProtoButton(
-                          label: 'Memory Detail',
+                          label: l10n.protoMemoryDetail,
                           onTap: _openDetail,
                         ),
-                        _ProtoButton(label: 'Paywall', onTap: _openPaywall),
+                        _ProtoButton(
+                          label: l10n.protoPaywall,
+                          onTap: _openPaywall,
+                        ),
                       ],
                     ),
                     const SizedBox(height: 9),
-                    const Text(
-                      'Prototype controls only — not part of the PutMind MVP interface.',
-                      style: TextStyle(
+                    Text(
+                      l10n.prototypeHint,
+                      style: const TextStyle(
                         fontSize: 10,
                         color: AppColors.muted,
                         height: 1.4,
@@ -222,8 +227,8 @@ class _PrototypeNavigatorState extends State<PrototypeNavigator> {
                   borderRadius: BorderRadius.circular(22),
                   border: Border.all(color: AppColors.line),
                 ),
-                child: const Text(
-                  'Prototype',
+                child: Text(
+                  l10n.prototype,
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w800,

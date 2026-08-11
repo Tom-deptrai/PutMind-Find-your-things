@@ -8,6 +8,7 @@ import '../widgets/app_dialogs.dart';
 import '../widgets/app_icon_button.dart';
 import '../widgets/app_switch.dart';
 import '../widgets/photo_placeholder.dart';
+import '../l10n/app_localizations.dart';
 
 class CaptureScreen extends StatefulWidget {
   const CaptureScreen({super.key, required this.state});
@@ -51,13 +52,13 @@ class _CaptureScreenState extends State<CaptureScreen> {
   String get _promptLabel {
     switch (state.capturePhase) {
       case CapturePhase.preview:
-        return 'Take a photo, then speak or type where you put it.';
+        return AppLocalizations.of(context)!.capturePromptPreview;
       case CapturePhase.guiding:
-        return 'Playing voice guidance…';
+        return AppLocalizations.of(context)!.capturePromptGuiding;
       case CapturePhase.listening:
-        return 'Listening… speak naturally, or type instead.';
+        return AppLocalizations.of(context)!.capturePromptListening;
       case CapturePhase.editing:
-        return 'Review the transcript, then save.';
+        return AppLocalizations.of(context)!.capturePromptEditing;
     }
   }
 
@@ -93,11 +94,11 @@ class _CaptureScreenState extends State<CaptureScreen> {
                       dark: true,
                       onPressed: state.openHome,
                     ),
-                    const Expanded(
+                    Expanded(
                       child: Text(
-                        'Capture',
+                        AppLocalizations.of(context)!.captureTitle,
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: AppColors.white,
                           fontWeight: FontWeight.w700,
                           fontSize: 16,
@@ -166,15 +167,15 @@ class _CaptureScreenState extends State<CaptureScreen> {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const Text(
-                          'What is this? Where did you put it?',
+                        Text(
+                          AppLocalizations.of(context)!.capturePromptTitle,
                           style: AppTypography.captureTitle,
                         ),
                         const SizedBox(height: 8),
                         Row(
                           children: [
-                            const Text(
-                              'Voice Guidance',
+                            Text(
+                              AppLocalizations.of(context)!.voiceGuidanceLabel,
                               style: AppTypography.toggle,
                             ),
                             const SizedBox(width: 7),
@@ -184,7 +185,13 @@ class _CaptureScreenState extends State<CaptureScreen> {
                             ),
                             const SizedBox(width: 7),
                             Text(
-                              state.settings.voiceGuidance ? 'On' : 'Off',
+                              state.settings.voiceGuidance
+                                  ? AppLocalizations.of(
+                                      context,
+                                    )!.voiceGuidanceOn
+                                  : AppLocalizations.of(
+                                      context,
+                                    )!.voiceGuidanceOff,
                               style: AppTypography.toggle.copyWith(
                                 fontWeight: FontWeight.w700,
                               ),
@@ -205,7 +212,9 @@ class _CaptureScreenState extends State<CaptureScreen> {
                           maxLines: 3,
                           minLines: 2,
                           decoration: InputDecoration(
-                            hintText: 'Type here if you prefer…',
+                            hintText: AppLocalizations.of(
+                              context,
+                            )!.captureTranscriptHint,
                             filled: true,
                             fillColor: AppColors.white,
                             contentPadding: const EdgeInsets.all(10),
@@ -235,7 +244,9 @@ class _CaptureScreenState extends State<CaptureScreen> {
                             Expanded(
                               child: OutlinedButton(
                                 onPressed: state.retake,
-                                child: const Text('Retake'),
+                                child: Text(
+                                  AppLocalizations.of(context)!.captureRetake,
+                                ),
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -246,17 +257,19 @@ class _CaptureScreenState extends State<CaptureScreen> {
                                     state.captureTranscript.trim().isEmpty
                                     ? null
                                     : _save,
-                                child: const Text('Save memory'),
+                                child: Text(
+                                  AppLocalizations.of(context)!.captureSave,
+                                ),
                               ),
                             ),
                           ],
                         ),
                       ],
                     )
-                  : const Padding(
+                  : Padding(
                       padding: EdgeInsets.symmetric(vertical: 8),
                       child: Text(
-                        'Snap the thing you’re putting away.',
+                        AppLocalizations.of(context)!.captureSnapMessage,
                         style: AppTypography.body,
                         textAlign: TextAlign.center,
                       ),

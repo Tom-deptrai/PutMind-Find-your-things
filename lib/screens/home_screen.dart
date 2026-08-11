@@ -12,6 +12,7 @@ import '../widgets/empty_memories_view.dart';
 import '../widgets/home_search_bar.dart';
 import '../widgets/memory_card.dart';
 import '../widgets/memory_detail_sheet.dart';
+import '../l10n/app_localizations.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, required this.state});
@@ -110,7 +111,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         AppIconButton(
                           icon: Icons.settings_outlined,
-                          tooltip: 'Settings',
+                          tooltip: AppLocalizations.of(
+                            context,
+                          )!.settingsTooltip,
                           onPressed: state.openSettings,
                         ),
                       ],
@@ -130,10 +133,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           children: [
                             if (state.searchQuery.trim().isNotEmpty)
-                              const Padding(
-                                padding: EdgeInsets.all(28),
+                              Padding(
+                                padding: const EdgeInsets.all(28),
                                 child: Text(
-                                  'No memories match your search.',
+                                  AppLocalizations.of(
+                                    context,
+                                  )!.homeNoMemoriesMatch,
                                   style: AppTypography.body,
                                   textAlign: TextAlign.center,
                                 ),
@@ -152,10 +157,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           itemCount: memories.length + 1,
                           itemBuilder: (context, index) {
                             if (index == 0) {
-                              return const Padding(
-                                padding: EdgeInsets.fromLTRB(2, 9, 2, 8),
+                              return Padding(
+                                padding: const EdgeInsets.fromLTRB(2, 9, 2, 8),
                                 child: Text(
-                                  'Recent memories',
+                                  AppLocalizations.of(
+                                    context,
+                                  )!.homeRecentMemories,
                                   style: AppTypography.section,
                                 ),
                               );

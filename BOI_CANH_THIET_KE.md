@@ -395,6 +395,12 @@ MVP hỗ trợ:
 - Japanese
 - German
 - Vietnamese
+- Korean
+- French
+- Spanish
+- Brazilian Portuguese
+- Italian
+- Traditional Chinese
 
 Thiết kế phải chịu được text length khác nhau.
 
