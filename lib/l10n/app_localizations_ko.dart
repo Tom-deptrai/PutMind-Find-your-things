@@ -60,6 +60,19 @@ class AppLocalizationsKo extends AppLocalizations {
   String get captureRetake => '다시 찍기';
 
   @override
+  String get captureAddPhoto => '추가';
+
+  @override
+  String capturePhotoCount(int count, int max) {
+    return '$count/$max';
+  }
+
+  @override
+  String memoryDetailPhotoIndex(int current, int total) {
+    return '$current/$total';
+  }
+
+  @override
   String get captureSave => '메모리 저장';
 
   @override

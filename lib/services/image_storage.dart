@@ -79,4 +79,11 @@ class ImageStorage {
     }
     return newPath;
   }
+
+  /// Deletes every path in [imagePaths] that lives under managed storage.
+  Future<void> deleteImages(Iterable<String> imagePaths) async {
+    for (final path in imagePaths) {
+      await deleteImage(path);
+    }
+  }
 }

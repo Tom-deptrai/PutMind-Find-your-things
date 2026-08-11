@@ -44,24 +44,38 @@ class MemoryCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 3),
+                    const SizedBox(height: 2),
                     Text(
-                      memory.title,
+                      memory.transcript,
                       style: AppTypography.memoryTitle,
-                      maxLines: 1,
+                      maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      memory.location,
-                      style: AppTypography.location,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 7),
-                    Text(
-                      formatMemoryTimestamp(context, memory.updatedAt),
-                      style: AppTypography.meta,
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            formatMemoryTimestamp(context, memory.updatedAt),
+                            style: AppTypography.meta,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (memory.hasMultiplePhotos) ...[
+                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.photo_library_outlined,
+                            size: 14,
+                            color: AppColors.meta,
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            '${memory.photoCount}',
+                            style: AppTypography.meta,
+                          ),
+                        ],
+                      ],
                     ),
                   ],
                 ),

@@ -146,7 +146,7 @@ void main() {
         transcript: 'Keys, in the kitchen drawer.',
         createdAt: DateTime.utc(2026, 1, 1),
         updatedAt: DateTime.utc(2026, 1, 2),
-        imagePath: path,
+        imagePaths: [path],
       );
       await repo.upsert(memory);
       return memory;

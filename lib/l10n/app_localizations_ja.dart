@@ -60,6 +60,19 @@ class AppLocalizationsJa extends AppLocalizations {
   String get captureRetake => '撮り直す';
 
   @override
+  String get captureAddPhoto => '追加';
+
+  @override
+  String capturePhotoCount(int count, int max) {
+    return '$count/$max';
+  }
+
+  @override
+  String memoryDetailPhotoIndex(int current, int total) {
+    return '$current/$total';
+  }
+
+  @override
   String get captureSave => 'メモリーを保存';
 
   @override

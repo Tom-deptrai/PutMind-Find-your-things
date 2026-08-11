@@ -83,7 +83,7 @@ class _CaptureScreenState extends State<CaptureScreen>
   }
 
   Future<void> _prepareCamera() async {
-    if (state.hasCapturedPhoto) return;
+    if (state.capturePhase != CapturePhase.preview) return;
 
     // Web preview + widget tests use a mock shutter (native camera is source of truth).
     final isTest = Platform.environment.containsKey('FLUTTER_TEST');
@@ -136,10 +136,12 @@ class _CaptureScreenState extends State<CaptureScreen>
   }
 
   Future<void> _takePicture() async {
-    if (_takingPicture || state.hasCapturedPhoto) return;
+    if (_takingPicture || state.capturePhase != CapturePhase.preview) return;
 
     if (kIsWeb || _webMockNote != null || _cameraController == null) {
-      state.takePhoto(mockImagePath: 'mock-captured');
+      state.takePhoto(
+        mockImagePath: 'mock-captured-${state.captureImagePaths.length}',
+      );
       setState(() {});
       return;
     }
@@ -171,6 +173,12 @@ class _CaptureScreenState extends State<CaptureScreen>
     if (mounted) setState(() {});
   }
 
+  Future<void> _addPhoto() async {
+    state.startAddPhoto();
+    await _prepareCamera();
+    if (mounted) setState(() {});
+  }
+
   String _promptLabel(AppLocalizations l10n) {
     switch (state.capturePhase) {
       case CapturePhase.preview:
@@ -193,8 +201,8 @@ class _CaptureScreenState extends State<CaptureScreen>
   }
 
   Widget _buildPreview(AppLocalizations l10n) {
-    final captured = state.hasCapturedPhoto;
-    if (captured) {
+    final inCamera = state.capturePhase == CapturePhase.preview;
+    if (!inCamera) {
       final path = state.captureImagePath;
       if (path != null &&
           !kIsWeb &&
@@ -272,7 +280,8 @@ class _CaptureScreenState extends State<CaptureScreen>
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final bottomPad = MediaQuery.paddingOf(context).bottom;
-    final captured = state.hasCapturedPhoto;
+    final inCamera = state.isCameraPhase;
+    final showTranscriptSheet = !inCamera && state.hasCapturedPhoto;
     final isReplace = state.captureMode == CaptureMode.replacePhoto;
 
     return Scaffold(
@@ -313,12 +322,12 @@ class _CaptureScreenState extends State<CaptureScreen>
               ),
             ),
             Expanded(
-              flex: captured ? 5 : 7,
+              flex: showTranscriptSheet ? 5 : 7,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
                   _buildPreview(l10n),
-                  if (!captured &&
+                  if (inCamera &&
                       !_permissionDenied &&
                       !_cameraError &&
                       _webMockNote == null)
@@ -332,11 +341,39 @@ class _CaptureScreenState extends State<CaptureScreen>
                         ),
                       ),
                     ),
+                  if (state.captureImagePaths.isNotEmpty)
+                    Positioned(
+                      top: 12,
+                      right: 12,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: Colors.black54,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
+                          child: Text(
+                            l10n.capturePhotoCount(
+                              state.captureImagePaths.length,
+                              kMaxPhotosPerMemory,
+                            ),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
             Flexible(
-              flex: captured ? 6 : 3,
+              flex: showTranscriptSheet ? 6 : 3,
               child: Material(
                 color: AppColors.white,
                 borderRadius: const BorderRadius.vertical(
@@ -348,11 +385,11 @@ class _CaptureScreenState extends State<CaptureScreen>
                     18,
                     18,
                     18,
-                    (captured ? 22 : 18) + bottomPad,
+                    (showTranscriptSheet ? 22 : 18) + bottomPad,
                   ),
                   keyboardDismissBehavior:
                       ScrollViewKeyboardDismissBehavior.onDrag,
-                  child: captured
+                  child: showTranscriptSheet
                       ? (isReplace
                             ? _ReplacePhotoSheet(
                                 onRetake: _retake,
@@ -364,6 +401,9 @@ class _CaptureScreenState extends State<CaptureScreen>
                                 controller: _transcriptController,
                                 prompt: _promptLabel(l10n),
                                 onRetake: _retake,
+                                onAddPhoto: state.canAddCapturePhoto
+                                    ? _addPhoto
+                                    : null,
                                 onSave:
                                     state.captureTranscript.trim().isEmpty ||
                                         state.isSaving
@@ -394,6 +434,7 @@ class _CaptureTranscriptSheet extends StatelessWidget {
     required this.controller,
     required this.prompt,
     required this.onRetake,
+    required this.onAddPhoto,
     required this.onSave,
   });
 
@@ -401,16 +442,31 @@ class _CaptureTranscriptSheet extends StatelessWidget {
   final TextEditingController controller;
   final String prompt;
   final VoidCallback onRetake;
+  final VoidCallback? onAddPhoto;
   final Future<void> Function()? onSave;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final photoCount = state.captureImagePaths.length;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(l10n.capturePromptTitle, style: AppTypography.captureTitle),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                l10n.capturePromptTitle,
+                style: AppTypography.captureTitle,
+              ),
+            ),
+            Text(
+              l10n.capturePhotoCount(photoCount, kMaxPhotosPerMemory),
+              style: AppTypography.meta,
+            ),
+          ],
+        ),
         const SizedBox(height: 8),
         Row(
           children: [
@@ -474,16 +530,50 @@ class _CaptureTranscriptSheet extends StatelessWidget {
             Expanded(
               child: OutlinedButton(
                 onPressed: state.isSaving ? null : onRetake,
-                child: Text(l10n.captureRetake),
+                child: Text(
+                  l10n.captureRetake,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
             Expanded(
-              flex: 2,
+              child: OutlinedButton(
+                onPressed: state.isSaving ? null : onAddPhoto,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.add_a_photo_outlined,
+                      size: 16,
+                      color: onAddPhoto == null
+                          ? Theme.of(context).disabledColor
+                          : null,
+                    ),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        l10n.captureAddPhoto,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+            Expanded(
+              flex: 1,
               child: ElevatedButton(
                 onPressed: onSave,
                 child: Text(
                   state.isSaving ? l10n.savingMemory : l10n.captureSave,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
                 ),
               ),
             ),

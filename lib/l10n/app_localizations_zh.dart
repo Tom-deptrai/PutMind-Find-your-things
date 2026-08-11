@@ -60,6 +60,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get captureRetake => '重拍';
 
   @override
+  String get captureAddPhoto => '加拍';
+
+  @override
+  String capturePhotoCount(int count, int max) {
+    return '$count/$max';
+  }
+
+  @override
+  String memoryDetailPhotoIndex(int current, int total) {
+    return '$current/$total';
+  }
+
+  @override
   String get captureSave => '儲存記憶';
 
   @override
@@ -553,6 +566,19 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get captureRetake => '重拍';
+
+  @override
+  String get captureAddPhoto => '加拍';
+
+  @override
+  String capturePhotoCount(int count, int max) {
+    return '$count/$max';
+  }
+
+  @override
+  String memoryDetailPhotoIndex(int current, int total) {
+    return '$current/$total';
+  }
 
   @override
   String get captureSave => '儲存記憶';

@@ -36,14 +36,14 @@ void main() {
         transcript: 'Passport, in the desk drawer.',
         createdAt: DateTime(2026, 1, 1),
         updatedAt: DateTime(2026, 1, 1),
-        imagePath: '/tmp/a.jpg',
+        imagePaths: const ['/tmp/a.jpg'],
       );
       final newer = Memory(
         id: 'b',
         transcript: 'Keys, in the kitchen bowl.',
         createdAt: DateTime(2026, 2, 1),
         updatedAt: DateTime(2026, 2, 1),
-        imagePath: '/tmp/b.jpg',
+        imagePaths: const ['/tmp/b.jpg'],
       );
 
       await repo.upsert(older);

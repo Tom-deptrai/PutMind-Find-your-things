@@ -17,6 +17,29 @@
   "capturePromptEditing": "Review the transcript, then save.",
   "captureTranscriptHint": "Type here if you prefer…",
   "captureRetake": "Retake",
+  "captureAddPhoto": "Add photo",
+  "capturePhotoCount": "{count}/{max}",
+  "@capturePhotoCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "memoryDetailPhotoIndex": "{current}/{total}",
+  "@memoryDetailPhotoIndex": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "captureSave": "Save memory",
   "captureSnapMessage": "Snap the thing you’re putting away.",
   "settingsTitle": "Settings",

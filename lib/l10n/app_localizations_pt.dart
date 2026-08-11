@@ -64,6 +64,19 @@ class AppLocalizationsPt extends AppLocalizations {
   String get captureRetake => 'Repetir';
 
   @override
+  String get captureAddPhoto => '+ Foto';
+
+  @override
+  String capturePhotoCount(int count, int max) {
+    return '$count/$max';
+  }
+
+  @override
+  String memoryDetailPhotoIndex(int current, int total) {
+    return '$current/$total';
+  }
+
+  @override
   String get captureSave => 'Salvar memória';
 
   @override
@@ -574,6 +587,19 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
 
   @override
   String get captureRetake => 'Repetir';
+
+  @override
+  String get captureAddPhoto => '+ Foto';
+
+  @override
+  String capturePhotoCount(int count, int max) {
+    return '$count/$max';
+  }
+
+  @override
+  String memoryDetailPhotoIndex(int current, int total) {
+    return '$current/$total';
+  }
 
   @override
   String get captureSave => 'Salvar memória';

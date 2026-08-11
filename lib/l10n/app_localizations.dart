@@ -218,6 +218,24 @@ abstract class AppLocalizations {
   /// **'Retake'**
   String get captureRetake;
 
+  /// No description provided for @captureAddPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Add photo'**
+  String get captureAddPhoto;
+
+  /// No description provided for @capturePhotoCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}/{max}'**
+  String capturePhotoCount(int count, int max);
+
+  /// No description provided for @memoryDetailPhotoIndex.
+  ///
+  /// In en, this message translates to:
+  /// **'{current}/{total}'**
+  String memoryDetailPhotoIndex(int current, int total);
+
   /// No description provided for @captureSave.
   ///
   /// In en, this message translates to:

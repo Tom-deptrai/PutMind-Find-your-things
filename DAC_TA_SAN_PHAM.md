@@ -211,12 +211,14 @@ Không dùng ngôn ngữ kỹ thuật như “database record” hay “inventor
 
 Mỗi card nên có:
 
-- Ảnh
-- Mô tả ngắn / transcript phù hợp
-- Vị trí
+- Ảnh cover (ảnh đầu tiên)
+- Transcript đầy đủ làm text chính
 - Thời gian lưu
+- Số lượng ảnh (chỉ khi > 1), dạng ngắn góc phải cùng dòng timestamp
 
-Không chỉ hiển thị ảnh; text phải luôn có để người dùng nhận biết nhanh.
+**Không hiển thị title riêng.** Không tạo field Item Name. Không dùng AI để extract title/location cho Home card.
+
+Không chỉ hiển thị ảnh; transcript phải luôn có để người dùng nhận biết nhanh.
 
 ### Phía dưới
 
@@ -252,23 +254,24 @@ Khi người dùng chạm một Memory trên Home, mở **Bottom Sheet/Modal**.
 
 Hiển thị:
 
-- Ảnh lớn
+- Carousel ảnh ngang (swipe trái/phải), ảnh đầu là cover
+- Indicator nhỏ kiểu `1/3` khi có nhiều ảnh
+- Tap ảnh → fullscreen multi-photo viewer (swipe, pinch-zoom, pan, double-tap zoom)
 - Transcript/mô tả
-- Vị trí nếu được suy ra/hiển thị riêng
 - Thời gian tạo
 - Thời gian cập nhật nếu có
 
 Actions:
 
 - Edit
-- Replace photo
+- Replace photo (thay đúng ảnh đang được chọn trong carousel)
 - Delete
 
 Delete cần confirmation:
 
 > Delete this memory?
 
-MVP không cần Trash/Recently Deleted.
+Delete xóa toàn bộ Memory và toàn bộ ảnh liên quan. MVP không cần Trash/Recently Deleted. Không xóa từng ảnh riêng trong MVP này.
 
 ---
 
@@ -289,7 +292,7 @@ Không cố định tỷ lệ tuyệt đối; UI phải responsive theo kích th
 
 ## 12. Capture Flow chính thức
 
-**Camera → Chụp → Voice Guidance → Ghi âm → Transcript → Save**
+**Camera → Chụp → Voice Guidance → Ghi âm → Transcript → (tuỳ chọn Chụp thêm ảnh, tối đa 5) → Save**
 
 ### Bước 1
 
@@ -317,6 +320,20 @@ Mục tiêu là giúp người dùng luôn nói đủ hai thông tin:
 Ví dụ:
 
 > “Sạc MacBook, để trong ngăn trên cùng tủ phòng ngủ.”
+
+### Bước 4b — Chụp thêm ảnh (tuỳ chọn)
+
+Sau ảnh đầu tiên, khi đang ở màn transcript, khu vực action có:
+
+**Retake | Add Photo | Save Memory**
+
+- Một Memory có **1 đến tối đa 5 ảnh**, một transcript chung
+- Ảnh đầu tiên là **cover photo** dùng trên Home
+- Add Photo giữ nguyên transcript và các ảnh đã chụp, mở camera chụp tiếp
+- Voice Guidance + STT phục vụ transcript chung; không phát lại Voice Guidance không cần thiết mỗi lần chụp ảnh bổ sung
+- Retake chỉ thay ảnh hiện tại/vừa chụp, không xóa các ảnh trước và không reset transcript
+- Khi đủ 5 ảnh: ẩn/disable Add Photo; có thể hiện `5/5`
+- Free limit 20 vẫn tính theo **Memory**, không theo số ảnh
 
 ### Bước 5
 
@@ -476,8 +493,8 @@ Người dùng phải có thể:
 ### Bắt buộc
 
 - ID
-- Image
-- Full transcript
+- Ordered photo list (1–5 ảnh local; index 0 = cover)
+- Full transcript (chung cho toàn bộ ảnh)
 - Created time
 - Updated time
 
@@ -496,6 +513,8 @@ Không bắt người dùng nhập riêng:
 - Location
 - Category
 - Tag
+
+Cover photo luôn là ảnh index 0. Replace Photo thay đúng ảnh đang được chọn trong carousel; nếu thay index 0 thì cover cập nhật theo.
 
 Về sau có thể tách “Vật gì” và “Ở đâu” bằng logic/AI nếu hữu ích, nhưng không được làm Capture UX phức tạp hơn.
 

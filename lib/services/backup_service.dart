@@ -15,7 +15,8 @@ import 'memory_repository.dart';
 const int kBackupFormatVersion = 1;
 
 /// Schema version of the memories payload inside a backup.
-const int kBackupSchemaVersion = 1;
+/// v1: single `image` field. v2: ordered `images` list (+ optional legacy `image`).
+const int kBackupSchemaVersion = 2;
 
 const String kBackupMagic = 'PMBK';
 const int kBackupPbkdf2Iterations = 210000;
@@ -123,35 +124,34 @@ class BackupService {
     final memories = await _repository.getAll();
     final archive = Archive();
     final exportMemories = <Map<String, Object?>>[];
-    final imageNames = <String, String>{};
 
     for (final memory in memories) {
-      String? relativeImage;
-      final imagePath = memory.imagePath;
-      if (imagePath != null && imagePath.isNotEmpty) {
+      final relativeImages = <String>[];
+      for (var i = 0; i < memory.imagePaths.length; i++) {
+        final imagePath = memory.imagePaths[i];
         final file = File(imagePath);
-        if (await file.exists()) {
-          final ext = p.extension(imagePath).isEmpty
-              ? '.jpg'
-              : p.extension(imagePath);
-          final name = '${memory.id}$ext';
-          relativeImage = name;
-          imageNames[memory.id] = name;
-          archive.addFile(
-            ArchiveFile(
-              'images/$name',
-              await file.length(),
-              await file.readAsBytes(),
-            ),
-          );
-        }
+        if (!await file.exists()) continue;
+        final ext = p.extension(imagePath).isEmpty
+            ? '.jpg'
+            : p.extension(imagePath);
+        final name = '${memory.id}_$i$ext';
+        relativeImages.add(name);
+        archive.addFile(
+          ArchiveFile(
+            'images/$name',
+            await file.length(),
+            await file.readAsBytes(),
+          ),
+        );
       }
       exportMemories.add({
         'id': memory.id,
         'transcript': memory.transcript,
         'createdAt': memory.createdAt.toUtc().toIso8601String(),
         'updatedAt': memory.updatedAt.toUtc().toIso8601String(),
-        'image': relativeImage,
+        'images': relativeImages,
+        // Legacy single-image field (cover) for older readers.
+        'image': relativeImages.isEmpty ? null : relativeImages.first,
         if (memory.displayTitle != null) 'displayTitle': memory.displayTitle,
         if (memory.displayLocation != null)
           'displayLocation': memory.displayLocation,
@@ -247,14 +247,24 @@ class BackupService {
     final memories = <Memory>[];
     for (final raw in list) {
       final map = Map<String, Object?>.from(raw as Map);
-      final imageName = map['image'] as String?;
+      final imagesRaw = map['images'];
+      final imageNames = <String>[];
+      if (imagesRaw is List) {
+        for (final item in imagesRaw) {
+          if (item is String && item.isNotEmpty) imageNames.add(item);
+        }
+      } else {
+        final legacy = map['image'] as String?;
+        if (legacy != null && legacy.isNotEmpty) imageNames.add(legacy);
+      }
       memories.add(
         Memory(
           id: map['id']! as String,
           transcript: map['transcript']! as String,
           createdAt: DateTime.parse(map['createdAt']! as String),
           updatedAt: DateTime.parse(map['updatedAt']! as String),
-          imagePath: imageName,
+          // Temporarily store relative names in imagePaths; commitRestore remaps.
+          imagePaths: imageNames,
           displayTitle: map['displayTitle'] as String?,
           displayLocation: map['displayLocation'] as String?,
         ),
@@ -296,20 +306,17 @@ class BackupService {
 
       final restored = <Memory>[];
       for (final memory in decrypted.memories) {
-        final imageName = memory.imagePath;
-        String? finalPath;
-        if (imageName != null && stagedImages.containsKey(imageName)) {
-          finalPath = await _imageStorage.persistCapturedImage(
+        final finalPaths = <String>[];
+        for (var i = 0; i < memory.imagePaths.length; i++) {
+          final imageName = memory.imagePaths[i];
+          if (!stagedImages.containsKey(imageName)) continue;
+          final finalPath = await _imageStorage.persistCapturedImage(
             stagedImages[imageName]!,
-            id: p.basenameWithoutExtension(imageName),
+            id: '${memory.id}_$i',
           );
+          finalPaths.add(finalPath);
         }
-        restored.add(
-          memory.copyWith(
-            imagePath: finalPath,
-            clearImagePath: finalPath == null,
-          ),
-        );
+        restored.add(memory.copyWith(imagePaths: finalPaths));
       }
 
       // Snapshot current state for rollback if replaceAll throws.

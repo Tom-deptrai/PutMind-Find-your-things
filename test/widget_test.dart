@@ -56,7 +56,10 @@ void main() {
 
       expect(find.text('PutMind'), findsOneWidget);
       expect(find.text('Recent memories'), findsOneWidget);
-      expect(find.text('Passport'), findsOneWidget);
+      expect(
+        find.textContaining('Passport, in the second drawer'),
+        findsOneWidget,
+      );
       expect(find.byIcon(Icons.camera_alt_rounded), findsOneWidget);
       expect(find.text('Prototype'), findsNothing);
     });
@@ -106,8 +109,11 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));
 
-      expect(find.text('Passport'), findsOneWidget);
-      await tester.tap(find.text('Passport'));
+      expect(
+        find.textContaining('Passport, in the second drawer'),
+        findsOneWidget,
+      );
+      await tester.tap(find.textContaining('Passport, in the second drawer'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));
 

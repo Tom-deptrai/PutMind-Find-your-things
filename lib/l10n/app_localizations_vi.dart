@@ -63,6 +63,19 @@ class AppLocalizationsVi extends AppLocalizations {
   String get captureRetake => 'Chụp lại';
 
   @override
+  String get captureAddPhoto => 'Chụp thêm ảnh';
+
+  @override
+  String capturePhotoCount(int count, int max) {
+    return '$count/$max';
+  }
+
+  @override
+  String memoryDetailPhotoIndex(int current, int total) {
+    return '$current/$total';
+  }
+
+  @override
   String get captureSave => 'Lưu Memory';
 
   @override

@@ -115,31 +115,27 @@ List<Memory> createSeedMemories({DateTime? now}) {
       transcript: 'Passport, in the second drawer of my work desk.',
       displayTitle: 'Passport',
       displayLocation: 'Second drawer of the work desk',
-      createdAt: DateTime(current.year, current.month, current.day, 8, 42),
-      updatedAt: DateTime(current.year, current.month, current.day, 8, 42),
-      imagePath: null,
+      createdAt: current.subtract(const Duration(hours: 3)),
+      updatedAt: current.subtract(const Duration(hours: 3)),
+      imagePaths: const [],
     ),
     Memory(
       id: 'seed-2',
       transcript: 'MacBook charger, on the top shelf of the bedroom closet.',
       displayTitle: 'MacBook charger',
       displayLocation: 'Top shelf, bedroom closet',
-      createdAt: DateTime(current.year, current.month, current.day)
-          .subtract(const Duration(days: 1))
-          .add(const Duration(hours: 21, minutes: 18)),
-      updatedAt: DateTime(current.year, current.month, current.day)
-          .subtract(const Duration(days: 1))
-          .add(const Duration(hours: 21, minutes: 18)),
-      imagePath: null,
+      createdAt: current.subtract(const Duration(days: 1, hours: 2)),
+      updatedAt: current.subtract(const Duration(days: 1, hours: 2)),
+      imagePaths: const [],
     ),
     Memory(
       id: 'seed-3',
       transcript: 'Sony camera cable, in moving box 17.',
       displayTitle: 'Sony camera cable',
       displayLocation: 'Moving box 17',
-      createdAt: DateTime(current.year, 8, 2, 16, 20),
-      updatedAt: DateTime(current.year, 8, 2, 16, 20),
-      imagePath: null,
+      createdAt: current.subtract(const Duration(days: 10)),
+      updatedAt: current.subtract(const Duration(days: 10)),
+      imagePaths: const [],
     ),
   ];
 }

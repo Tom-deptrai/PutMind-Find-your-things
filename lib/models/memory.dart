@@ -1,11 +1,16 @@
-/// A saved Memory — photo + transcript of where something was put.
+import 'dart:convert';
+
+/// Maximum photos allowed on a single Memory (Product Spec).
+const int kMaxPhotosPerMemory = 5;
+
+/// A saved Memory — one or more photos + shared transcript.
 class Memory {
   const Memory({
     required this.id,
     required this.transcript,
     required this.createdAt,
     required this.updatedAt,
-    this.imagePath,
+    this.imagePaths = const [],
     this.displayTitle,
     this.displayLocation,
   });
@@ -17,12 +22,19 @@ class Memory {
   final DateTime createdAt;
   final DateTime updatedAt;
 
-  /// Absolute local file path to the memory image (null = placeholder).
-  final String? imagePath;
+  /// Ordered local image paths. Index 0 is the cover photo.
+  final List<String> imagePaths;
 
-  /// Optional display helpers inferred from transcript for cards.
+  /// Optional display helpers (not persisted as primary fields).
   final String? displayTitle;
   final String? displayLocation;
+
+  /// Cover photo path (index 0), or null when empty.
+  String? get imagePath => imagePaths.isEmpty ? null : imagePaths.first;
+
+  int get photoCount => imagePaths.length;
+
+  bool get hasMultiplePhotos => imagePaths.length > 1;
 
   String get title {
     if (displayTitle != null && displayTitle!.trim().isNotEmpty) {
@@ -43,8 +55,7 @@ class Memory {
     String? transcript,
     DateTime? createdAt,
     DateTime? updatedAt,
-    String? imagePath,
-    bool clearImagePath = false,
+    List<String>? imagePaths,
     String? displayTitle,
     String? displayLocation,
   }) {
@@ -53,7 +64,7 @@ class Memory {
       transcript: transcript ?? this.transcript,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
-      imagePath: clearImagePath ? null : (imagePath ?? this.imagePath),
+      imagePaths: imagePaths ?? this.imagePaths,
       displayTitle: displayTitle ?? this.displayTitle,
       displayLocation: displayLocation ?? this.displayLocation,
     );
@@ -63,7 +74,9 @@ class Memory {
     return {
       'id': id,
       'transcript': transcript,
+      // Legacy single column kept in sync with cover for older readers.
       'image_path': imagePath,
+      'image_paths': jsonEncode(imagePaths),
       'created_at': createdAt.millisecondsSinceEpoch,
       'updated_at': updatedAt.millisecondsSinceEpoch,
     };
@@ -73,10 +86,30 @@ class Memory {
     return Memory(
       id: map['id']! as String,
       transcript: map['transcript']! as String,
-      imagePath: map['image_path'] as String?,
+      imagePaths: _pathsFromMap(map),
       createdAt: DateTime.fromMillisecondsSinceEpoch(map['created_at']! as int),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(map['updated_at']! as int),
     );
+  }
+
+  static List<String> _pathsFromMap(Map<String, Object?> map) {
+    final raw = map['image_paths'];
+    if (raw is String && raw.trim().isNotEmpty) {
+      try {
+        final decoded = jsonDecode(raw);
+        if (decoded is List) {
+          return decoded
+              .whereType<String>()
+              .where((e) => e.trim().isNotEmpty)
+              .toList(growable: false);
+        }
+      } catch (_) {
+        // Fall through to legacy column.
+      }
+    }
+    final single = map['image_path'] as String?;
+    if (single == null || single.isEmpty) return const [];
+    return [single];
   }
 
   static String _inferTitle(String transcript) {

@@ -20,11 +20,13 @@ import '../services/settings_store.dart';
 import '../services/speech_service.dart';
 import '../services/voice_guidance_player.dart';
 
+export '../models/memory.dart' show kMaxPhotosPerMemory;
+
 enum AppRoute { home, capture, settings, unlock, onboarding }
 
 enum CapturePhase { preview, guiding, listening, editing }
 
-enum CaptureMode { create, replacePhoto }
+enum CaptureMode { create, replacePhoto, addPhoto }
 
 /// App state for PutMind MVP (Step 3: voice, lock, reminders, persistence).
 class AppState extends ChangeNotifier {
@@ -122,9 +124,16 @@ class AppState extends ChangeNotifier {
   CapturePhase _capturePhase = CapturePhase.preview;
   CaptureMode _captureMode = CaptureMode.create;
   String _captureTranscript = '';
-  String? _captureImagePath;
+  final List<String> _captureImagePaths = [];
+  int _captureActiveIndex = 0;
   String? _replaceMemoryId;
+  int _replacePhotoIndex = 0;
+  int _detailPhotoIndex = 0;
+
+  /// When set, next capture inserts at this index (Retake current slot).
+  int? _pendingRetakeIndex;
   Timer? _captureTimer;
+  int _successTick = 0;
 
   /// Bumps on retake/back/save to cancel in-flight guidance → listen chains.
   int _captureGeneration = 0;
@@ -178,9 +187,25 @@ class AppState extends ChangeNotifier {
   CapturePhase get capturePhase => _capturePhase;
   CaptureMode get captureMode => _captureMode;
   String get captureTranscript => _captureTranscript;
-  String? get captureImagePath => _captureImagePath;
-  bool get hasCapturedPhoto =>
-      _captureImagePath != null && _captureImagePath!.isNotEmpty;
+  List<String> get captureImagePaths => List.unmodifiable(_captureImagePaths);
+  int get captureActiveIndex => _captureActiveIndex;
+  int get replacePhotoIndex => _replacePhotoIndex;
+  int get detailPhotoIndex => _detailPhotoIndex;
+  String? get captureImagePath => _captureImagePaths.isEmpty
+      ? null
+      : _captureImagePaths[_captureActiveIndex.clamp(
+          0,
+          _captureImagePaths.length - 1,
+        )];
+  bool get hasCapturedPhoto => _captureImagePaths.isNotEmpty;
+
+  /// True while the Capture screen should show the live camera (incl. Add/Retake).
+  bool get isCameraPhase => _capturePhase == CapturePhase.preview;
+  bool get canAddCapturePhoto =>
+      _captureMode != CaptureMode.replacePhoto &&
+      _captureImagePaths.isNotEmpty &&
+      _captureImagePaths.length < kMaxPhotosPerMemory;
+  int get successTick => _successTick;
   Memory? get selectedMemory => _selectedMemory;
   bool get showMemoryDetail => _showMemoryDetail;
   bool get showPaywall => _showPaywall;
@@ -293,11 +318,19 @@ class AppState extends ChangeNotifier {
 
   void openSettings() => goTo(AppRoute.settings);
 
-  void openReplacePhoto(Memory memory) {
+  void openReplacePhoto(Memory memory, {int photoIndex = 0}) {
+    final idx = memory.imagePaths.isEmpty
+        ? 0
+        : photoIndex.clamp(0, memory.imagePaths.length - 1);
     _selectedMemory = memory;
     _replaceMemoryId = memory.id;
+    _replacePhotoIndex = idx;
+    _detailPhotoIndex = idx;
     _captureMode = CaptureMode.replacePhoto;
-    _resetCapture();
+    _resetCapture(keepReplaceContext: true);
+    _captureMode = CaptureMode.replacePhoto;
+    _replaceMemoryId = memory.id;
+    _replacePhotoIndex = idx;
     _route = AppRoute.capture;
     _dismissTransientOverlays(keepDetail: false);
     notifyListeners();
@@ -373,7 +406,15 @@ class AppState extends ChangeNotifier {
 
   // --- Capture ---
 
-  void _resetCapture() {
+  void _emitSuccess() {
+    _successTick++;
+  }
+
+  void _emitError(String key) {
+    _snackMessage = key;
+  }
+
+  void _resetCapture({bool keepReplaceContext = false}) {
     _captureGeneration++;
     _captureTimer?.cancel();
     _captureTimer = null;
@@ -383,28 +424,94 @@ class AppState extends ChangeNotifier {
     unawaited(_speech.cancel());
     unawaited(_voicePlayer.stop());
     _capturePhase = CapturePhase.preview;
-    _captureTranscript = '';
-    _captureImagePath = null;
+    _pendingRetakeIndex = null;
+    if (!keepReplaceContext) {
+      _captureTranscript = '';
+      _captureImagePaths.clear();
+      _captureActiveIndex = 0;
+      _replaceMemoryId = null;
+      _replacePhotoIndex = 0;
+      _captureMode = CaptureMode.create;
+    } else {
+      _captureImagePaths.clear();
+      _captureActiveIndex = 0;
+    }
   }
 
   void onPhotoCaptured(String imagePath) {
     _captureTimer?.cancel();
-    _captureImagePath = imagePath;
-    _manualCaptureEditing = false;
-    _speechListenPrefix = '';
-    _speechRestartCount = 0;
+
     if (_captureMode == CaptureMode.replacePhoto) {
+      _captureImagePaths
+        ..clear()
+        ..add(imagePath);
+      _captureActiveIndex = 0;
+      _pendingRetakeIndex = null;
       _capturePhase = CapturePhase.editing;
       notifyListeners();
       return;
     }
-    if (_settings.voiceGuidance) {
-      _capturePhase = CapturePhase.guiding;
+
+    if (_captureMode == CaptureMode.addPhoto) {
+      if (_captureImagePaths.length >= kMaxPhotosPerMemory) {
+        notifyListeners();
+        return;
+      }
+      _captureImagePaths.add(imagePath);
+      _captureActiveIndex = _captureImagePaths.length - 1;
+      _pendingRetakeIndex = null;
+      _captureMode = CaptureMode.create;
+      _manualCaptureEditing = true;
+      _capturePhase = CapturePhase.editing;
+      unawaited(_speech.stop());
+      unawaited(_voicePlayer.stop());
       notifyListeners();
-      unawaited(_playGuidanceThenListen());
-    } else {
-      unawaited(startListening());
+      return;
     }
+
+    // Retake: insert into the vacated slot; keep transcript; no voice replay.
+    if (_pendingRetakeIndex != null) {
+      final insertAt = _pendingRetakeIndex!.clamp(0, _captureImagePaths.length);
+      _captureImagePaths.insert(insertAt, imagePath);
+      _captureActiveIndex = insertAt;
+      _pendingRetakeIndex = null;
+      _manualCaptureEditing = true;
+      _capturePhase = CapturePhase.editing;
+      unawaited(_speech.stop());
+      unawaited(_voicePlayer.stop());
+      notifyListeners();
+      return;
+    }
+
+    // First photo of a new Memory.
+    if (_captureImagePaths.isEmpty) {
+      _captureImagePaths.add(imagePath);
+      _captureActiveIndex = 0;
+      _manualCaptureEditing = false;
+      _speechListenPrefix = '';
+      _speechRestartCount = 0;
+      if (_settings.voiceGuidance) {
+        _capturePhase = CapturePhase.guiding;
+        notifyListeners();
+        unawaited(_playGuidanceThenListen());
+      } else {
+        unawaited(startListening());
+      }
+      return;
+    }
+
+    // Safety: replace active slot in place.
+    final idx = _captureActiveIndex.clamp(0, _captureImagePaths.length - 1);
+    final previous = _captureImagePaths[idx];
+    _captureImagePaths[idx] = imagePath;
+    if (previous != imagePath && !previous.startsWith('mock-')) {
+      unawaited(_imageStorage.deleteImage(previous));
+    }
+    _manualCaptureEditing = true;
+    _capturePhase = CapturePhase.editing;
+    unawaited(_speech.stop());
+    unawaited(_voicePlayer.stop());
+    notifyListeners();
   }
 
   Future<void> _playGuidanceThenListen() async {
@@ -423,6 +530,22 @@ class AppState extends ChangeNotifier {
 
   void takePhoto({String? mockImagePath}) {
     onPhotoCaptured(mockImagePath ?? 'mock-captured');
+  }
+
+  /// Opens camera to append another photo to the current draft Memory.
+  void startAddPhoto() {
+    if (!canAddCapturePhoto) return;
+    unawaited(_speech.stop());
+    unawaited(_voicePlayer.stop());
+    _manualCaptureEditing = true;
+    _captureMode = CaptureMode.addPhoto;
+    _capturePhase = CapturePhase.preview;
+    notifyListeners();
+  }
+
+  void setDetailPhotoIndex(int index) {
+    _detailPhotoIndex = index;
+    notifyListeners();
   }
 
   Future<void> startListening({bool isRestart = false}) async {
@@ -568,11 +691,35 @@ class AppState extends ChangeNotifier {
   }
 
   void retake() {
-    final previous = _captureImagePath;
-    _resetCapture();
+    if (_captureMode == CaptureMode.replacePhoto) {
+      _resetCapture(keepReplaceContext: true);
+      _captureMode = CaptureMode.replacePhoto;
+      notifyListeners();
+      return;
+    }
+
+    if (_captureImagePaths.isEmpty) {
+      _resetCapture();
+      notifyListeners();
+      return;
+    }
+
+    // Retake only the current/active photo; keep transcript + other photos.
+    final idx = _captureActiveIndex.clamp(0, _captureImagePaths.length - 1);
+    final removed = _captureImagePaths.removeAt(idx);
+    _pendingRetakeIndex = idx;
+    if (_captureImagePaths.isEmpty) {
+      _captureActiveIndex = 0;
+    } else if (_captureActiveIndex >= _captureImagePaths.length) {
+      _captureActiveIndex = _captureImagePaths.length - 1;
+    }
+    unawaited(_speech.cancel());
+    unawaited(_voicePlayer.stop());
+    _capturePhase = CapturePhase.preview;
+    _captureMode = CaptureMode.create;
     notifyListeners();
-    if (previous != null && !previous.startsWith('mock-')) {
-      unawaited(_imageStorage.deleteImage(previous));
+    if (!removed.startsWith('mock-')) {
+      unawaited(_imageStorage.deleteImage(removed));
     }
   }
 
@@ -593,8 +740,7 @@ class AppState extends ChangeNotifier {
     }
 
     final text = _captureTranscript.trim();
-    final sourcePath = _captureImagePath;
-    if (sourcePath == null || sourcePath.isEmpty || text.isEmpty) {
+    if (_captureImagePaths.isEmpty || text.isEmpty) {
       return false;
     }
 
@@ -611,29 +757,31 @@ class AppState extends ChangeNotifier {
     try {
       final now = DateTime.now();
       final id = _uuid.v4();
-      final persistedPath = await _persistOrKeep(sourcePath, id: id);
+      final persisted = <String>[];
+      for (var i = 0; i < _captureImagePaths.length; i++) {
+        final path = await _persistOrKeep(_captureImagePaths[i], id: '$id-$i');
+        persisted.add(path);
+      }
       final memory = Memory(
         id: id,
         transcript: text,
         createdAt: now,
         updatedAt: now,
-        imagePath: persistedPath,
+        imagePaths: persisted,
       );
       await _repository.upsert(memory);
       _searchQuery = '';
       await reloadMemories();
       _resetCapture();
-      _captureMode = CaptureMode.create;
-      _replaceMemoryId = null;
       _route = AppRoute.home;
-      _snackMessage = 'snackMemorySaved';
+      _emitSuccess();
       _isSaving = false;
       notifyListeners();
       return true;
     } catch (e) {
       _isSaving = false;
       _errorMessage = 'saveFailed';
-      _snackMessage = 'saveMemoryFailed';
+      _emitError('saveMemoryFailed');
       notifyListeners();
       return false;
     }
@@ -641,7 +789,7 @@ class AppState extends ChangeNotifier {
 
   Future<bool> _saveReplacedPhoto() async {
     final memoryId = _replaceMemoryId;
-    final sourcePath = _captureImagePath;
+    final sourcePath = captureImagePath;
     if (memoryId == null || sourcePath == null || sourcePath.isEmpty) {
       return false;
     }
@@ -659,41 +807,47 @@ class AppState extends ChangeNotifier {
         return false;
       }
 
+      final paths = [...existing.imagePaths];
+      final idx = paths.isEmpty
+          ? 0
+          : _replacePhotoIndex.clamp(0, paths.isEmpty ? 0 : paths.length - 1);
+      final previous = paths.isEmpty ? null : paths[idx];
       final newPath = await _imageStorage.replaceImage(
         sourcePath: sourcePath,
-        previousPath: existing.imagePath,
+        previousPath: previous,
         id: '$memoryId-${DateTime.now().millisecondsSinceEpoch}',
       );
+      if (paths.isEmpty) {
+        paths.add(newPath);
+      } else {
+        paths[idx] = newPath;
+      }
       final updated = existing.copyWith(
-        imagePath: newPath,
+        imagePaths: paths,
         updatedAt: DateTime.now(),
       );
       await _repository.upsert(updated);
       await reloadMemories();
       _resetCapture();
-      _captureMode = CaptureMode.create;
-      _replaceMemoryId = null;
       _selectedMemory = updated;
+      _detailPhotoIndex = idx;
       _route = AppRoute.home;
-      _snackMessage = 'photoReplaced';
+      _emitSuccess();
       _isSaving = false;
       notifyListeners();
       return true;
     } catch (_) {
       _isSaving = false;
       _errorMessage = 'saveFailed';
-      _snackMessage = 'replacePhotoFailed';
+      _emitError('replacePhotoFailed');
       notifyListeners();
       return false;
     }
   }
 
-  Future<String?> _persistOrKeep(
-    String sourcePath, {
-    required String id,
-  }) async {
+  Future<String> _persistOrKeep(String sourcePath, {required String id}) async {
     if (kIsWeb || sourcePath.startsWith('mock-')) {
-      return sourcePath.startsWith('mock-') ? null : sourcePath;
+      return sourcePath;
     }
     final file = File(sourcePath);
     if (!await file.exists()) {
@@ -706,6 +860,7 @@ class AppState extends ChangeNotifier {
 
   void openMemoryDetail(Memory memory) {
     _selectedMemory = memory;
+    _detailPhotoIndex = 0;
     _showMemoryDetail = true;
     _showDeleteConfirm = false;
     notifyListeners();
@@ -731,7 +886,7 @@ class AppState extends ChangeNotifier {
     await reloadMemories();
     _selectedMemory =
         _memories.where((m) => m.id == updated.id).firstOrNull ?? updated;
-    _snackMessage = 'snackMemoryUpdated';
+    _emitSuccess();
     notifyListeners();
   }
 
@@ -749,12 +904,12 @@ class AppState extends ChangeNotifier {
     final selected = _selectedMemory;
     if (selected == null) return;
     await _repository.delete(selected.id);
-    await _imageStorage.deleteImage(selected.imagePath);
+    await _imageStorage.deleteImages(selected.imagePaths);
     await reloadMemories();
     _showDeleteConfirm = false;
     _showMemoryDetail = false;
     _selectedMemory = null;
-    _snackMessage = 'snackMemoryDeleted';
+    _emitSuccess();
     notifyListeners();
   }
 
@@ -860,7 +1015,7 @@ class AppState extends ChangeNotifier {
     _settings = _settings.copyWith(appLock: true);
     await _persistSettings();
     await refreshBiometricAvailability();
-    _snackMessage = 'snackAppLockEnabled';
+    _emitSuccess();
     notifyListeners();
     return true;
   }
@@ -902,7 +1057,7 @@ class AppState extends ChangeNotifier {
       final bytes = await _backup.createBackupBytes(password);
       _settings = _settings.copyWith(lastBackupAt: DateTime.now());
       await _persistSettings();
-      _snackMessage = 'snackBackupCreated';
+      _emitSuccess();
       notifyListeners();
       return bytes;
     } on BackupException catch (e) {
@@ -930,7 +1085,7 @@ class AppState extends ChangeNotifier {
     try {
       await _backup.restoreFromFile(filePath: path, password: password);
       await reloadMemories();
-      _snackMessage = 'snackBackupRestored';
+      _emitSuccess();
       notifyListeners();
       return true;
     } on BackupException catch (e) {
@@ -958,7 +1113,8 @@ class AppState extends ChangeNotifier {
     _settings = _settings.copyWith(isLifetimeUnlocked: true);
     await _persistSettings();
     _showPaywall = false;
-    _snackMessage = snackKey;
+    // Lifetime unlock is success feedback (compact check), not a snackbar.
+    _emitSuccess();
     notifyListeners();
   }
 

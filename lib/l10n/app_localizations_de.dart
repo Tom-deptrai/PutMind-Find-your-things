@@ -65,6 +65,19 @@ class AppLocalizationsDe extends AppLocalizations {
   String get captureRetake => 'Neu aufnehmen';
 
   @override
+  String get captureAddPhoto => '+ Foto';
+
+  @override
+  String capturePhotoCount(int count, int max) {
+    return '$count/$max';
+  }
+
+  @override
+  String memoryDetailPhotoIndex(int current, int total) {
+    return '$current/$total';
+  }
+
+  @override
   String get captureSave => 'Erinnerung speichern';
 
   @override

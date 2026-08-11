@@ -13,6 +13,7 @@ import 'services/repository_factory.dart';
 import 'state/app_state.dart';
 import 'theme/app_theme.dart';
 import 'widgets/mobile_viewport_frame.dart';
+import 'widgets/success_indicator.dart';
 
 class PutMindApp extends StatefulWidget {
   const PutMindApp({super.key, this.state});
@@ -109,6 +110,7 @@ class _PutMindAppState extends State<PutMindApp> with WidgetsBindingObserver {
     _syncReminderCopy(state);
     final messageKey = state.snackMessage;
     if (messageKey.isNotEmpty) {
+      // Success uses compact top-right check; snackbars are errors/info only.
       final loc = _messengerKey.currentContext == null
           ? null
           : AppLocalizations.of(_messengerKey.currentContext!);
@@ -194,7 +196,10 @@ class _PutMindAppState extends State<PutMindApp> with WidgetsBindingObserver {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       builder: (context, child) {
-        return MobileViewportFrame(child: child ?? const SizedBox.shrink());
+        return SuccessIndicatorHost(
+          trigger: state.successTick,
+          child: MobileViewportFrame(child: child ?? const SizedBox.shrink()),
+        );
       },
       home: AnimatedSwitcher(
         duration: const Duration(milliseconds: 180),

@@ -66,6 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final action = await showMemoryDetailSheet(
       context: context,
       memory: memory,
+      state: state,
     );
     if (!mounted) return;
 
@@ -84,7 +85,7 @@ class _HomeScreenState extends State<HomeScreen> {
           state.closeMemoryDetail();
         }
       case MemoryDetailAction.replacePhoto:
-        state.openReplacePhoto(memory);
+        state.openReplacePhoto(memory, photoIndex: state.detailPhotoIndex);
       case MemoryDetailAction.delete:
         final confirmed = await showDeleteMemoryDialog(context);
         if (!mounted) return;

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 
@@ -11,7 +13,9 @@ class SqliteMemoryRepository implements MemoryRepository {
   final Database _db;
 
   static const _dbName = 'putmind_memories.db';
-  static const _dbVersion = 1;
+
+  /// v1: single image_path. v2: image_paths JSON (+ legacy image_path cover).
+  static const _dbVersion = 2;
 
   /// Opens (or creates) the app database under [databasesPath].
   static Future<SqliteMemoryRepository> open({
@@ -46,6 +50,7 @@ class SqliteMemoryRepository implements MemoryRepository {
         id TEXT PRIMARY KEY NOT NULL,
         transcript TEXT NOT NULL,
         image_path TEXT,
+        image_paths TEXT NOT NULL DEFAULT '[]',
         created_at INTEGER NOT NULL,
         updated_at INTEGER NOT NULL
       )
@@ -67,7 +72,26 @@ class SqliteMemoryRepository implements MemoryRepository {
     int oldVersion,
     int newVersion,
   ) async {
-    // v1: initial schema. Future migrations go here.
+    if (oldVersion < 2) {
+      await db.execute(
+        "ALTER TABLE memories ADD COLUMN image_paths TEXT NOT NULL DEFAULT '[]'",
+      );
+      // Migrate legacy single image_path → JSON list of one.
+      final rows = await db.query('memories', columns: ['id', 'image_path']);
+      for (final row in rows) {
+        final id = row['id']! as String;
+        final single = row['image_path'] as String?;
+        final paths = (single == null || single.isEmpty)
+            ? <String>[]
+            : <String>[single];
+        await db.update(
+          'memories',
+          {'image_paths': jsonEncode(paths)},
+          where: 'id = ?',
+          whereArgs: [id],
+        );
+      }
+    }
   }
 
   @override
@@ -117,7 +141,6 @@ class SqliteMemoryRepository implements MemoryRepository {
     final q = query.trim();
     if (q.isEmpty) return getAll();
 
-    // Prefer FTS prefix match for partial queries; fall back to LIKE.
     final sanitized = q.replaceAll('"', '""');
     final ftsQuery = '"$sanitized"*';
 
@@ -148,7 +171,6 @@ class SqliteMemoryRepository implements MemoryRepository {
 
     final memories = rows.map(Memory.fromMap).toList();
 
-    // Relevance: exact substring outranks fuzzy/partial FTS hits; then newest.
     final lower = q.toLowerCase();
     memories.sort((a, b) {
       final aScore = a.transcript.toLowerCase().contains(lower) ? 2 : 1;
