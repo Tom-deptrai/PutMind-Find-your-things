@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:camera/camera.dart';
@@ -6,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../l10n/app_localizations.dart';
+import '../services/camera_session_gate.dart';
 import '../state/app_state.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_radius.dart';
@@ -26,10 +28,12 @@ class CaptureScreen extends StatefulWidget {
 class _CaptureScreenState extends State<CaptureScreen>
     with WidgetsBindingObserver {
   late final TextEditingController _transcriptController;
+  final CameraSessionGate _cameraGate = CameraSessionGate();
   CameraController? _cameraController;
   Future<void>? _cameraInit;
   bool _permissionDenied = false;
   bool _cameraError = false;
+  bool _cameraPreparing = false;
   bool _takingPicture = false;
   String? _webMockNote;
 
@@ -42,28 +46,32 @@ class _CaptureScreenState extends State<CaptureScreen>
     _transcriptController = TextEditingController(
       text: state.captureTranscript,
     );
-    state.addListener(_syncTranscript);
+    state.addListener(_onAppStateChanged);
     _prepareCamera();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    state.removeListener(_syncTranscript);
+    state.removeListener(_onAppStateChanged);
     _transcriptController.dispose();
-    _disposeCamera();
+    // Fire-and-forget final release; gate prevents overlap with in-flight ops.
+    unawaited(_releaseCameraController());
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState lifecycle) {
-    final controller = _cameraController;
-    if (controller == null || !controller.value.isInitialized) return;
     if (lifecycle == AppLifecycleState.inactive) {
-      _disposeCamera();
+      unawaited(_releaseCameraController());
     } else if (lifecycle == AppLifecycleState.resumed) {
-      _prepareCamera();
+      unawaited(_prepareCamera());
     }
+  }
+
+  void _onAppStateChanged() {
+    _syncTranscript();
+    if (mounted) setState(() {});
   }
 
   void _syncTranscript() {
@@ -75,64 +83,106 @@ class _CaptureScreenState extends State<CaptureScreen>
     }
   }
 
-  Future<void> _disposeCamera() async {
-    final controller = _cameraController;
-    _cameraController = null;
-    _cameraInit = null;
-    await controller?.dispose();
+  /// Disposes any live controller through the serialized gate.
+  Future<void> _releaseCameraController() {
+    return _cameraGate.run(() async {
+      final controller = _cameraController;
+      _cameraController = null;
+      _cameraInit = null;
+      if (controller == null) return;
+      await controller.dispose();
+    });
   }
 
-  Future<void> _prepareCamera() async {
-    if (state.capturePhase != CapturePhase.preview) return;
+  Future<void> _prepareCamera() {
+    return _cameraGate.run(() async {
+      if (!mounted) return;
+      if (state.capturePhase != CapturePhase.preview) return;
 
-    // Web preview + widget tests use a mock shutter (native camera is source of truth).
-    final isTest = Platform.environment.containsKey('FLUTTER_TEST');
-    if (kIsWeb || isTest) {
-      setState(() {
-        _webMockNote = kIsWeb ? 'web' : 'test';
-        _permissionDenied = false;
-        _cameraError = false;
-      });
-      return;
-    }
-
-    setState(() {
-      _permissionDenied = false;
-      _cameraError = false;
-    });
-
-    final status = await Permission.camera.request();
-    if (!status.isGranted) {
-      if (mounted) {
-        setState(() => _permissionDenied = true);
-      }
-      return;
-    }
-
-    try {
-      final cameras = await availableCameras();
-      if (cameras.isEmpty) {
-        if (mounted) setState(() => _cameraError = true);
+      // Web preview + widget tests use a mock shutter.
+      final isTest = Platform.environment.containsKey('FLUTTER_TEST');
+      if (kIsWeb || isTest) {
+        if (!mounted) return;
+        setState(() {
+          _webMockNote = kIsWeb ? 'web' : 'test';
+          _permissionDenied = false;
+          _cameraError = false;
+          _cameraPreparing = false;
+        });
         return;
       }
-      final camera = cameras.firstWhere(
-        (c) => c.lensDirection == CameraLensDirection.back,
-        orElse: () => cameras.first,
-      );
-      final controller = CameraController(
-        camera,
-        ResolutionPreset.high,
-        enableAudio: false,
-        imageFormatGroup: ImageFormatGroup.jpeg,
-      );
-      _cameraController = controller;
-      _cameraInit = controller.initialize();
-      await _cameraInit;
-      if (mounted) setState(() {});
-    } catch (_) {
-      await _disposeCamera();
-      if (mounted) setState(() => _cameraError = true);
+
+      // Always release any existing controller before opening a new one.
+      final existing = _cameraController;
+      _cameraController = null;
+      _cameraInit = null;
+      if (existing != null) {
+        await existing.dispose();
+        // Brief settle so Android finishes releasing the camera hardware.
+        await Future<void>.delayed(const Duration(milliseconds: 80));
+      }
+
+      if (!mounted || state.capturePhase != CapturePhase.preview) return;
+
+      setState(() {
+        _permissionDenied = false;
+        _cameraError = false;
+        _cameraPreparing = true;
+      });
+
+      final status = await Permission.camera.request();
+      if (!mounted || state.capturePhase != CapturePhase.preview) return;
+      if (!status.isGranted) {
+        setState(() {
+          _permissionDenied = true;
+          _cameraPreparing = false;
+        });
+        return;
+      }
+
+      final opened = await _openCameraWithRetry();
+      if (!mounted) return;
+      setState(() {
+        _cameraPreparing = false;
+        if (!opened) _cameraError = true;
+      });
+    });
+  }
+
+  /// Opens the camera; one short retry for transient Android "camera in use".
+  Future<bool> _openCameraWithRetry() async {
+    for (var attempt = 0; attempt < 2; attempt++) {
+      if (!mounted || state.capturePhase != CapturePhase.preview) return false;
+      try {
+        final cameras = await availableCameras();
+        if (cameras.isEmpty) return false;
+        final camera = cameras.firstWhere(
+          (c) => c.lensDirection == CameraLensDirection.back,
+          orElse: () => cameras.first,
+        );
+        final controller = CameraController(
+          camera,
+          ResolutionPreset.high,
+          enableAudio: false,
+          imageFormatGroup: ImageFormatGroup.jpeg,
+        );
+        _cameraController = controller;
+        _cameraInit = controller.initialize();
+        await _cameraInit;
+        return true;
+      } catch (_) {
+        final failed = _cameraController;
+        _cameraController = null;
+        _cameraInit = null;
+        await failed?.dispose();
+        if (attempt == 0) {
+          await Future<void>.delayed(const Duration(milliseconds: 150));
+          continue;
+        }
+        return false;
+      }
     }
+    return false;
   }
 
   Future<void> _takePicture() async {
@@ -142,7 +192,7 @@ class _CaptureScreenState extends State<CaptureScreen>
       state.takePhoto(
         mockImagePath: 'mock-captured-${state.captureImagePaths.length}',
       );
-      setState(() {});
+      if (mounted) setState(() {});
       return;
     }
 
@@ -155,7 +205,7 @@ class _CaptureScreenState extends State<CaptureScreen>
     try {
       final file = await controller.takePicture();
       state.onPhotoCaptured(file.path);
-      await _disposeCamera();
+      await _releaseCameraController();
       if (mounted) setState(() => _takingPicture = false);
     } catch (_) {
       if (mounted) {
@@ -169,12 +219,14 @@ class _CaptureScreenState extends State<CaptureScreen>
 
   Future<void> _retake() async {
     state.retake();
+    if (mounted) setState(() {});
     await _prepareCamera();
     if (mounted) setState(() {});
   }
 
   Future<void> _addPhoto() async {
     state.startAddPhoto();
+    if (mounted) setState(() {});
     await _prepareCamera();
     if (mounted) setState(() {});
   }
@@ -217,6 +269,15 @@ class _CaptureScreenState extends State<CaptureScreen>
       return _PermissionDeniedView(
         onRetry: _prepareCamera,
         onOpenSettings: openAppSettings,
+      );
+    }
+
+    // Preparing / gate busy → loading, never a fake "unavailable".
+    if (_cameraPreparing ||
+        (_cameraController == null && !_cameraError && _webMockNote == null)) {
+      return const ColoredBox(
+        color: Color(0xFF1A221E),
+        child: Center(child: CircularProgressIndicator(color: Colors.white)),
       );
     }
 
@@ -524,60 +585,61 @@ class _CaptureTranscriptSheet extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
         Row(
           children: [
             Expanded(
               child: OutlinedButton(
                 onPressed: state.isSaving ? null : onRetake,
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(48),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 10,
+                  ),
+                ),
                 child: Text(
                   l10n.captureRetake,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  softWrap: true,
                 ),
               ),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 8),
             Expanded(
               child: OutlinedButton(
                 onPressed: state.isSaving ? null : onAddPhoto,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.add_a_photo_outlined,
-                      size: 16,
-                      color: onAddPhoto == null
-                          ? Theme.of(context).disabledColor
-                          : null,
-                    ),
-                    const SizedBox(width: 4),
-                    Flexible(
-                      child: Text(
-                        l10n.captureAddPhoto,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(48),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 10,
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(width: 6),
-            Expanded(
-              flex: 1,
-              child: ElevatedButton(
-                onPressed: onSave,
                 child: Text(
-                  state.isSaving ? l10n.savingMemory : l10n.captureSave,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  l10n.captureAddPhoto,
                   textAlign: TextAlign.center,
+                  maxLines: 2,
+                  softWrap: true,
                 ),
               ),
             ),
           ],
+        ),
+        const SizedBox(height: 10),
+        ElevatedButton(
+          onPressed: onSave,
+          style: ElevatedButton.styleFrom(
+            minimumSize: const Size.fromHeight(52),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+          ),
+          child: Text(
+            state.isSaving ? l10n.savingMemory : l10n.captureSave,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            softWrap: true,
+          ),
         ),
       ],
     );

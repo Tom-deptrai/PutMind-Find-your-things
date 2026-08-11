@@ -175,7 +175,13 @@ class _MemoryDetailBodyState extends State<_MemoryDetailBody> {
                   ),
                 ),
                 const SizedBox(height: 14),
-                Text(memory.transcript, style: AppTypography.body),
+                Text(
+                  memory.transcript,
+                  style: AppTypography.body.copyWith(
+                    color: AppColors.ink,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
                 Padding(
                   padding: const EdgeInsets.only(top: 6, bottom: 12),
                   child: Text(

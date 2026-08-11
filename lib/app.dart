@@ -203,8 +203,10 @@ class _PutMindAppState extends State<PutMindApp> with WidgetsBindingObserver {
       },
       home: AnimatedSwitcher(
         duration: const Duration(milliseconds: 180),
+        // Key by route only — including captureMode remounted CaptureScreen on
+        // Add Photo and raced camera dispose/initialize (Camera unavailable).
         child: KeyedSubtree(
-          key: ValueKey('${state.route}-${state.captureMode}'),
+          key: ValueKey(state.route),
           child: _screenFor(state, state.route),
         ),
       ),
