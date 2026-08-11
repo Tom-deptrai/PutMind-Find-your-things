@@ -5,6 +5,8 @@ import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:speech_to_text/speech_to_text.dart' show ListenMode;
+
 import '../models/memory.dart';
 import '../models/settings.dart';
 import '../services/backup_service.dart';
@@ -123,6 +125,19 @@ class AppState extends ChangeNotifier {
   String? _captureImagePath;
   String? _replaceMemoryId;
   Timer? _captureTimer;
+
+  /// Bumps on retake/back/save to cancel in-flight guidance → listen chains.
+  int _captureGeneration = 0;
+
+  /// When true, user chose typing; do not auto-restart speech.
+  bool _manualCaptureEditing = false;
+
+  /// Transcript committed before a speech session restart (for merge).
+  String _speechListenPrefix = '';
+
+  /// Caps auto-restarts within one Capture voice session.
+  int _speechRestartCount = 0;
+  static const int _maxSpeechRestarts = 12;
 
   Memory? _selectedMemory;
   bool _showMemoryDetail = false;
@@ -348,6 +363,8 @@ class AppState extends ChangeNotifier {
         }
       },
       listenFor: const Duration(seconds: 8),
+      pauseFor: const Duration(seconds: 3),
+      listenMode: ListenMode.confirmation,
     );
   }
 
@@ -357,8 +374,12 @@ class AppState extends ChangeNotifier {
   // --- Capture ---
 
   void _resetCapture() {
+    _captureGeneration++;
     _captureTimer?.cancel();
     _captureTimer = null;
+    _manualCaptureEditing = false;
+    _speechListenPrefix = '';
+    _speechRestartCount = 0;
     unawaited(_speech.cancel());
     unawaited(_voicePlayer.stop());
     _capturePhase = CapturePhase.preview;
@@ -369,6 +390,9 @@ class AppState extends ChangeNotifier {
   void onPhotoCaptured(String imagePath) {
     _captureTimer?.cancel();
     _captureImagePath = imagePath;
+    _manualCaptureEditing = false;
+    _speechListenPrefix = '';
+    _speechRestartCount = 0;
     if (_captureMode == CaptureMode.replacePhoto) {
       _capturePhase = CapturePhase.editing;
       notifyListeners();
@@ -384,11 +408,14 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> _playGuidanceThenListen() async {
+    final generation = _captureGeneration;
     try {
       await _voicePlayer.play(_settings.language);
     } catch (_) {
       // Playback failure must never block Speech-to-Text.
     }
+    if (generation != _captureGeneration) return;
+    if (_manualCaptureEditing) return;
     if (_capturePhase == CapturePhase.guiding) {
       await startListening();
     }
@@ -398,31 +425,45 @@ class AppState extends ChangeNotifier {
     onPhotoCaptured(mockImagePath ?? 'mock-captured');
   }
 
-  Future<void> startListening() async {
+  Future<void> startListening({bool isRestart = false}) async {
+    if (_manualCaptureEditing) return;
+    if (_capturePhase == CapturePhase.preview) return;
+
     _captureTimer?.cancel();
+    if (!isRestart) {
+      _speechListenPrefix = '';
+      _speechRestartCount = 0;
+    }
     _capturePhase = CapturePhase.listening;
     notifyListeners();
 
-    if (kIsWeb || Platform.environment.containsKey('FLUTTER_TEST')) {
-      // Tests / web: brief delay then leave empty for keyboard fallback.
-      _captureTimer = Timer(const Duration(milliseconds: 400), () {
-        if (_capturePhase == CapturePhase.listening) {
-          _capturePhase = CapturePhase.editing;
-          notifyListeners();
-        }
-      });
+    final generation = _captureGeneration;
+
+    if (kIsWeb) {
       return;
     }
 
-    final mic = await Permission.microphone.request();
-    if (!mic.isGranted) {
-      _snackMessage = 'microphoneDenied';
-      _capturePhase = CapturePhase.editing;
-      notifyListeners();
+    // Controllable fakes skip platform permission channels in unit tests.
+    final usingFakeSpeech = _speech is FakeSpeechService;
+
+    // Unit/widget tests without a fake: stay listening until manual edit.
+    if (!usingFakeSpeech && Platform.environment.containsKey('FLUTTER_TEST')) {
       return;
+    }
+
+    if (!usingFakeSpeech) {
+      final mic = await Permission.microphone.request();
+      if (generation != _captureGeneration || _manualCaptureEditing) return;
+      if (!mic.isGranted) {
+        _snackMessage = 'microphoneDenied';
+        _capturePhase = CapturePhase.editing;
+        notifyListeners();
+        return;
+      }
     }
 
     final available = await _speech.initialize();
+    if (generation != _captureGeneration || _manualCaptureEditing) return;
     if (!available) {
       _snackMessage = 'speechUnavailable';
       _capturePhase = CapturePhase.editing;
@@ -432,38 +473,95 @@ class AppState extends ChangeNotifier {
 
     await _speech.listen(
       localeId: _settings.language.speechToTextLocale,
+      listenFor: kCaptureListenFor,
+      pauseFor: kCapturePauseFor,
       onResult: (text) {
+        if (generation != _captureGeneration) return;
+        if (_manualCaptureEditing) return;
         if (_capturePhase != CapturePhase.listening &&
             _capturePhase != CapturePhase.editing) {
           return;
         }
-        _captureTranscript = text;
+        _captureTranscript = _mergeSpeechResult(text);
         notifyListeners();
       },
       onStatus: (status) {
-        if (status == SpeechListenStatus.done) {
-          _capturePhase = CapturePhase.editing;
-          notifyListeners();
-        } else if (status == SpeechListenStatus.permissionDenied) {
+        if (generation != _captureGeneration) return;
+        if (status == SpeechListenStatus.permissionDenied) {
           _snackMessage = 'microphoneDenied';
+          _manualCaptureEditing = true;
           _capturePhase = CapturePhase.editing;
           notifyListeners();
-        } else if (status == SpeechListenStatus.unavailable ||
+          return;
+        }
+        if (status == SpeechListenStatus.unavailable ||
             status == SpeechListenStatus.error) {
           _snackMessage = 'speechUnavailable';
+          _manualCaptureEditing = true;
           _capturePhase = CapturePhase.editing;
           notifyListeners();
+          return;
+        }
+        if (status == SpeechListenStatus.notListening ||
+            status == SpeechListenStatus.done) {
+          unawaited(_onSpeechSessionEnded(generation));
         }
       },
     );
   }
 
+  String _mergeSpeechResult(String live) {
+    final trimmed = live.trim();
+    if (_speechListenPrefix.isEmpty) return trimmed;
+    if (trimmed.isEmpty) return _speechListenPrefix;
+    return '$_speechListenPrefix $trimmed';
+  }
+
+  Future<void> _onSpeechSessionEnded(int generation) async {
+    if (generation != _captureGeneration) return;
+    if (_manualCaptureEditing) return;
+    if (_capturePhase != CapturePhase.listening) return;
+
+    // Unexpected platform end → safe restart while still in voice Capture.
+    if (_speechRestartCount >= _maxSpeechRestarts) {
+      _capturePhase = CapturePhase.editing;
+      notifyListeners();
+      return;
+    }
+
+    _speechListenPrefix = _captureTranscript.trim();
+    _speechRestartCount++;
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+    if (generation != _captureGeneration) return;
+    if (_manualCaptureEditing) return;
+    if (_capturePhase != CapturePhase.listening) return;
+    await startListening(isRestart: true);
+  }
+
+  /// User focused the transcript field → stop mic, no auto-restart.
+  Future<void> beginManualEditing() async {
+    if (!hasCapturedPhoto) return;
+    _manualCaptureEditing = true;
+    _captureTimer?.cancel();
+    _captureTimer = null;
+    await _speech.stop();
+    if (_capturePhase == CapturePhase.guiding) {
+      await _voicePlayer.stop();
+    }
+    _capturePhase = CapturePhase.editing;
+    notifyListeners();
+  }
+
   void setCaptureTranscript(String value) {
     _captureTranscript = value;
-    if (hasCapturedPhoto && value.trim().isNotEmpty) {
+    if (hasCapturedPhoto) {
+      _manualCaptureEditing = true;
       _captureTimer?.cancel();
       _captureTimer = null;
       unawaited(_speech.stop());
+      if (_capturePhase == CapturePhase.guiding) {
+        unawaited(_voicePlayer.stop());
+      }
       _capturePhase = CapturePhase.editing;
     }
     notifyListeners();

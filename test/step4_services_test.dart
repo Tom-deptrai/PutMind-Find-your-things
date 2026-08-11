@@ -10,6 +10,7 @@ import 'package:putmind/services/backup_service.dart';
 import 'package:putmind/services/image_storage.dart';
 import 'package:putmind/services/memory_repository.dart';
 import 'package:putmind/services/purchase_service.dart';
+import 'package:putmind/services/speech_service.dart';
 import 'package:putmind/services/voice_guidance_player.dart';
 import 'package:putmind/state/app_state.dart';
 
@@ -81,10 +82,12 @@ void main() {
       final images = ImageStorage.forDirectory(
         Directory.systemTemp.createTempSync('pm_voice_fail_'),
       );
+      final speech = FakeSpeechService();
       final state = AppState(
         repository: InMemoryMemoryRepository(),
         imageStorage: images,
         purchaseService: FakePurchaseService(),
+        speechService: speech,
         voiceGuidancePlayer: _ThrowingVoiceGuidancePlayer(),
         settings: const AppSettings(
           onboardingCompleted: true,
@@ -96,8 +99,7 @@ void main() {
       expect(state.capturePhase, CapturePhase.guiding);
       await Future<void>.delayed(const Duration(milliseconds: 50));
       expect(state.capturePhase, CapturePhase.listening);
-      await Future<void>.delayed(const Duration(milliseconds: 500));
-      expect(state.capturePhase, CapturePhase.editing);
+      expect(speech.listenCount, 1);
     });
 
     test('language switch uses matching voice locale mapping', () {

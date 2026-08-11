@@ -272,12 +272,12 @@ class _CaptureScreenState extends State<CaptureScreen>
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final bottomPad = MediaQuery.paddingOf(context).bottom;
-    final keyboard = MediaQuery.viewInsetsOf(context).bottom;
     final captured = state.hasCapturedPhoto;
     final isReplace = state.captureMode == CaptureMode.replacePhoto;
 
     return Scaffold(
       backgroundColor: AppColors.captureBg,
+      // Scaffold already shrinks for the IME — do not also pad by viewInsets.
       resizeToAvoidBottomInset: true,
       body: SafeArea(
         bottom: false,
@@ -313,7 +313,7 @@ class _CaptureScreenState extends State<CaptureScreen>
               ),
             ),
             Expanded(
-              flex: captured ? 6 : 7,
+              flex: captured ? 5 : 7,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
@@ -335,155 +335,161 @@ class _CaptureScreenState extends State<CaptureScreen>
                 ],
               ),
             ),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 220),
-              curve: Curves.easeOut,
-              padding: EdgeInsets.fromLTRB(
-                18,
-                18,
-                18,
-                (captured ? 22 : 18) + bottomPad + keyboard,
-              ),
-              decoration: const BoxDecoration(
+            Flexible(
+              flex: captured ? 6 : 3,
+              child: Material(
                 color: AppColors.white,
-                borderRadius: BorderRadius.vertical(
+                borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(AppRadius.captureSheet),
                 ),
-              ),
-              child: captured
-                  ? (isReplace
-                        ? _ReplacePhotoSheet(
-                            onRetake: _retake,
-                            onSave: state.isSaving ? null : _save,
-                            saving: state.isSaving,
-                          )
-                        : Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Text(
-                                l10n.capturePromptTitle,
-                                style: AppTypography.captureTitle,
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  Flexible(
-                                    child: Text(
-                                      l10n.voiceGuidanceLabel,
-                                      style: AppTypography.toggle,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 7),
-                                  AppSwitch(
-                                    value: state.settings.voiceGuidance,
-                                    onChanged: state.setVoiceGuidance,
-                                  ),
-                                  const SizedBox(width: 7),
-                                  Text(
-                                    state.settings.voiceGuidance
-                                        ? l10n.voiceGuidanceOn
-                                        : l10n.voiceGuidanceOff,
-                                    style: AppTypography.toggle.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                _promptLabel(l10n),
-                                style: AppTypography.prompt,
-                              ),
-                              const SizedBox(height: 8),
-                              if (state.capturePhase ==
-                                      CapturePhase.listening ||
-                                  state.capturePhase == CapturePhase.guiding)
-                                const _Waveform()
-                              else
-                                const SizedBox(height: 8),
-                              TextField(
+                clipBehavior: Clip.antiAlias,
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.fromLTRB(
+                    18,
+                    18,
+                    18,
+                    (captured ? 22 : 18) + bottomPad,
+                  ),
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  child: captured
+                      ? (isReplace
+                            ? _ReplacePhotoSheet(
+                                onRetake: _retake,
+                                onSave: state.isSaving ? null : _save,
+                                saving: state.isSaving,
+                              )
+                            : _CaptureTranscriptSheet(
+                                state: state,
                                 controller: _transcriptController,
-                                onChanged: state.setCaptureTranscript,
-                                maxLines: 3,
-                                minLines: 2,
-                                decoration: InputDecoration(
-                                  hintText: l10n.captureTranscriptHint,
-                                  filled: true,
-                                  fillColor: AppColors.white,
-                                  contentPadding: const EdgeInsets.all(10),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      AppRadius.md,
-                                    ),
-                                    borderSide: const BorderSide(
-                                      color: AppColors.line,
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      AppRadius.md,
-                                    ),
-                                    borderSide: const BorderSide(
-                                      color: AppColors.line,
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      AppRadius.md,
-                                    ),
-                                    borderSide: const BorderSide(
-                                      color: AppColors.accent,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: OutlinedButton(
-                                      onPressed: state.isSaving
-                                          ? null
-                                          : _retake,
-                                      child: Text(l10n.captureRetake),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    flex: 2,
-                                    child: ElevatedButton(
-                                      onPressed:
-                                          state.captureTranscript
-                                                  .trim()
-                                                  .isEmpty ||
-                                              state.isSaving
-                                          ? null
-                                          : _save,
-                                      child: Text(
+                                prompt: _promptLabel(l10n),
+                                onRetake: _retake,
+                                onSave:
+                                    state.captureTranscript.trim().isEmpty ||
                                         state.isSaving
-                                            ? l10n.savingMemory
-                                            : l10n.captureSave,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ))
-                  : Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Text(
-                        l10n.captureSnapMessage,
-                        style: AppTypography.body,
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
+                                    ? null
+                                    : _save,
+                              ))
+                      : Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Text(
+                            l10n.captureSnapMessage,
+                            style: AppTypography.body,
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                ),
+              ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _CaptureTranscriptSheet extends StatelessWidget {
+  const _CaptureTranscriptSheet({
+    required this.state,
+    required this.controller,
+    required this.prompt,
+    required this.onRetake,
+    required this.onSave,
+  });
+
+  final AppState state;
+  final TextEditingController controller;
+  final String prompt;
+  final VoidCallback onRetake;
+  final Future<void> Function()? onSave;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(l10n.capturePromptTitle, style: AppTypography.captureTitle),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Flexible(
+              child: Text(
+                l10n.voiceGuidanceLabel,
+                style: AppTypography.toggle,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 7),
+            AppSwitch(
+              value: state.settings.voiceGuidance,
+              onChanged: state.setVoiceGuidance,
+            ),
+            const SizedBox(width: 7),
+            Text(
+              state.settings.voiceGuidance
+                  ? l10n.voiceGuidanceOn
+                  : l10n.voiceGuidanceOff,
+              style: AppTypography.toggle.copyWith(fontWeight: FontWeight.w700),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(prompt, style: AppTypography.prompt),
+        const SizedBox(height: 8),
+        if (state.capturePhase == CapturePhase.listening ||
+            state.capturePhase == CapturePhase.guiding)
+          const _Waveform()
+        else
+          const SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          onTap: () => state.beginManualEditing(),
+          onChanged: state.setCaptureTranscript,
+          maxLines: 3,
+          minLines: 2,
+          decoration: InputDecoration(
+            hintText: l10n.captureTranscriptHint,
+            filled: true,
+            fillColor: AppColors.white,
+            contentPadding: const EdgeInsets.all(10),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              borderSide: const BorderSide(color: AppColors.line),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              borderSide: const BorderSide(color: AppColors.line),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              borderSide: const BorderSide(color: AppColors.accent),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: state.isSaving ? null : onRetake,
+                child: Text(l10n.captureRetake),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              flex: 2,
+              child: ElevatedButton(
+                onPressed: onSave,
+                child: Text(
+                  state.isSaving ? l10n.savingMemory : l10n.captureSave,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
