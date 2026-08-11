@@ -391,4 +391,55 @@ class AppLocalizationsDe extends AppLocalizations {
   String lifetimeCardLocked(Object limit, Object price, Object used) {
     return 'Unbegrenzte Erinnerungen · $price einmal · $used/$limit genutzt';
   }
+
+  @override
+  String get cameraPermissionTitle => 'Kamerazugriff erforderlich';
+
+  @override
+  String get cameraPermissionDenied =>
+      'PutMind braucht die Kamera, um zu fotografieren, was du wegräumst. Du kannst sie in den Einstellungen aktivieren.';
+
+  @override
+  String get cameraPermissionRetry => 'Erneut versuchen';
+
+  @override
+  String get cameraPermissionOpenSettings => 'Einstellungen öffnen';
+
+  @override
+  String get cameraUnavailableTitle => 'Kamera nicht verfügbar';
+
+  @override
+  String get cameraUnavailableBody =>
+      'Die Kamera konnte auf diesem Gerät nicht geöffnet werden. Bitte erneut versuchen.';
+
+  @override
+  String get cameraWebMockHint =>
+      'Die Web-Vorschau nutzt eine Mock-Kamera. Tippe auf den Auslöser, um fortzufahren.';
+
+  @override
+  String get captureReplaceTitle => 'Foto ersetzen';
+
+  @override
+  String get replacePhotoConfirmTitle => 'Dieses Foto verwenden?';
+
+  @override
+  String get replacePhotoConfirmBody =>
+      'Das Foto dieser Erinnerung wird ersetzt. Das Transkript bleibt gleich.';
+
+  @override
+  String get replacePhotoUsePhoto => 'Foto verwenden';
+
+  @override
+  String get savingMemory => 'Speichern…';
+
+  @override
+  String get photoReplaced => 'Foto ersetzt';
+
+  @override
+  String get saveMemoryFailed =>
+      'Erinnerung konnte nicht gespeichert werden. Bitte erneut versuchen.';
+
+  @override
+  String get replacePhotoFailed =>
+      'Foto konnte nicht ersetzt werden. Bitte erneut versuchen.';
 }

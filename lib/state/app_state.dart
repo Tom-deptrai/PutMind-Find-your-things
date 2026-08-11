@@ -1,30 +1,32 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:uuid/uuid.dart';
 
 import '../models/memory.dart';
 import '../models/settings.dart';
+import '../services/image_storage.dart';
 import '../services/memory_repository.dart';
 
 enum AppRoute { home, capture, settings, unlock, onboarding }
 
 enum CapturePhase { preview, guiding, listening, editing }
 
-/// In-memory app state for Step 1 UI review.
+enum CaptureMode { create, replacePhoto }
+
+/// App state for PutMind MVP.
 ///
-/// Native camera / speech / biometric / billing / SQLite arrive in later steps.
+/// Step 2: SQLite + local images + real camera capture paths.
+/// Voice / biometric / billing remain mocked until later steps.
 class AppState extends ChangeNotifier {
   AppState({
-    MemoryRepository? repository,
+    required MemoryRepository repository,
+    required ImageStorage imageStorage,
     AppSettings? settings,
-    bool seedDemoMemories = true,
-  }) : _repository =
-           repository ??
-           InMemoryMemoryRepository(
-             seed: seedDemoMemories ? createSeedMemories() : const [],
-           ),
+  }) : _repository = repository,
+       _imageStorage = imageStorage,
        _settings = settings ?? const AppSettings() {
-    _refreshMemories();
     if (!_settings.onboardingCompleted) {
       _route = AppRoute.onboarding;
     } else if (_settings.appLock) {
@@ -33,17 +35,42 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  /// Factory used by the real app entrypoint.
+  static Future<AppState> create({
+    MemoryRepository? repository,
+    ImageStorage? imageStorage,
+    AppSettings? settings,
+  }) async {
+    final repo = repository ?? InMemoryMemoryRepository();
+    final images = imageStorage ?? await ImageStorage.create();
+    final state = AppState(
+      repository: repo,
+      imageStorage: images,
+      settings: settings,
+    );
+    await state.reloadMemories();
+    return state;
+  }
+
   final MemoryRepository _repository;
+  final ImageStorage _imageStorage;
+  static const _uuid = Uuid();
 
   AppSettings _settings;
   List<Memory> _memories = const [];
+  int _totalCount = 0;
   String _searchQuery = '';
+  int _searchGeneration = 0;
   AppRoute _route = AppRoute.home;
   bool _isLocked = false;
+  bool _isReady = false;
+  bool _isSaving = false;
 
   CapturePhase _capturePhase = CapturePhase.preview;
+  CaptureMode _captureMode = CaptureMode.create;
   String _captureTranscript = '';
-  bool _hasCapturedPhoto = false;
+  String? _captureImagePath;
+  String? _replaceMemoryId;
   Timer? _captureTimer;
 
   Memory? _selectedMemory;
@@ -53,17 +80,23 @@ class AppState extends ChangeNotifier {
   bool _showPinFallback = false;
   String _pinInput = '';
   String _snackMessage = '';
+  String? _errorMessage;
 
   // --- Getters ---
 
+  bool get isReady => _isReady;
+  bool get isSaving => _isSaving;
   AppSettings get settings => _settings;
   List<Memory> get memories => _memories;
   String get searchQuery => _searchQuery;
   AppRoute get route => _route;
   bool get isLocked => _isLocked;
   CapturePhase get capturePhase => _capturePhase;
+  CaptureMode get captureMode => _captureMode;
   String get captureTranscript => _captureTranscript;
-  bool get hasCapturedPhoto => _hasCapturedPhoto;
+  String? get captureImagePath => _captureImagePath;
+  bool get hasCapturedPhoto =>
+      _captureImagePath != null && _captureImagePath!.isNotEmpty;
   Memory? get selectedMemory => _selectedMemory;
   bool get showMemoryDetail => _showMemoryDetail;
   bool get showPaywall => _showPaywall;
@@ -71,31 +104,29 @@ class AppState extends ChangeNotifier {
   bool get showPinFallback => _showPinFallback;
   String get pinInput => _pinInput;
   String get snackMessage => _snackMessage;
-  int get memoryCount => _memories.length;
+  String? get errorMessage => _errorMessage;
+  int get memoryCount => _totalCount;
   bool get canAddMemory =>
-      _settings.isLifetimeUnlocked || _memories.length < kFreeMemoryLimit;
+      _settings.isLifetimeUnlocked || _totalCount < kFreeMemoryLimit;
   int get remainingFreeSlots =>
-      (_settings.isLifetimeUnlocked
-              ? 999
-              : (kFreeMemoryLimit - _memories.length))
+      (_settings.isLifetimeUnlocked ? 999 : (kFreeMemoryLimit - _totalCount))
           .clamp(0, kFreeMemoryLimit);
 
   List<Memory> get filteredMemories {
-    final q = _searchQuery.trim().toLowerCase();
-    if (q.isEmpty) return _memories;
-    final scored = <({Memory memory, int score})>[];
-    for (final m in _memories) {
-      final hay = '${m.transcript} ${m.title} ${m.location}'.toLowerCase();
-      if (!hay.contains(q) && !_fuzzyContains(hay, q)) continue;
-      final score = hay.contains(q) ? 2 : 1;
-      scored.add((memory: m, score: score));
+    // Populated via [reloadMemories] / [setSearchQuery] from repository search.
+    return _memories;
+  }
+
+  Future<void> reloadMemories() async {
+    final all = await _repository.getAll();
+    _totalCount = all.length;
+    if (_searchQuery.trim().isEmpty) {
+      _memories = all;
+    } else {
+      _memories = await _repository.search(_searchQuery);
     }
-    scored.sort((a, b) {
-      final byScore = b.score.compareTo(a.score);
-      if (byScore != 0) return byScore;
-      return b.memory.updatedAt.compareTo(a.memory.updatedAt);
-    });
-    return scored.map((e) => e.memory).toList(growable: false);
+    _isReady = true;
+    notifyListeners();
   }
 
   // --- Navigation ---
@@ -103,6 +134,13 @@ class AppState extends ChangeNotifier {
   void goTo(AppRoute route) {
     _route = route;
     if (route == AppRoute.capture) {
+      // Keep replace mode if already set; otherwise reset for create.
+      if (_captureMode == CaptureMode.create) {
+        _resetCapture();
+      }
+    } else {
+      _captureMode = CaptureMode.create;
+      _replaceMemoryId = null;
       _resetCapture();
     }
     if (route != AppRoute.unlock) {
@@ -110,6 +148,7 @@ class AppState extends ChangeNotifier {
       _pinInput = '';
     }
     _dismissTransientOverlays(keepDetail: false);
+    _errorMessage = null;
     notifyListeners();
   }
 
@@ -120,27 +159,52 @@ class AppState extends ChangeNotifier {
       goTo(AppRoute.unlock);
       return;
     }
+    _captureMode = CaptureMode.create;
+    _replaceMemoryId = null;
     goTo(AppRoute.capture);
   }
 
   void openSettings() => goTo(AppRoute.settings);
 
+  /// Opens Capture to replace the photo of [memory].
+  void openReplacePhoto(Memory memory) {
+    _selectedMemory = memory;
+    _replaceMemoryId = memory.id;
+    _captureMode = CaptureMode.replacePhoto;
+    _resetCapture();
+    _route = AppRoute.capture;
+    _dismissTransientOverlays(keepDetail: false);
+    notifyListeners();
+  }
+
   // --- Search ---
 
-  void setSearchQuery(String value) {
+  Future<void> setSearchQuery(String value) async {
     _searchQuery = value;
+    final generation = ++_searchGeneration;
+    final all = await _repository.getAll();
+    if (generation != _searchGeneration) return;
+    _totalCount = all.length;
+    if (_searchQuery.trim().isEmpty) {
+      _memories = all;
+    } else {
+      final results = await _repository.search(_searchQuery);
+      if (generation != _searchGeneration) return;
+      _memories = results;
+    }
+    _isReady = true;
     notifyListeners();
   }
 
-  void clearSearch() {
+  Future<void> clearSearch() async {
     _searchQuery = '';
-    notifyListeners();
+    _searchGeneration++;
+    await reloadMemories();
   }
 
-  /// Step 1 mock voice-search: fills a sample query.
-  void mockVoiceSearch() {
-    _searchQuery = 'passport';
-    notifyListeners();
+  /// Step 2: voice search still mocked until speech lands in Step 3+.
+  Future<void> mockVoiceSearch() async {
+    await setSearchQuery('passport');
   }
 
   // --- Capture ---
@@ -150,16 +214,21 @@ class AppState extends ChangeNotifier {
     _captureTimer = null;
     _capturePhase = CapturePhase.preview;
     _captureTranscript = '';
-    _hasCapturedPhoto = false;
+    _captureImagePath = null;
   }
 
-  void takePhoto() {
+  /// Called by CaptureScreen after a successful camera shutter.
+  void onPhotoCaptured(String imagePath) {
     _captureTimer?.cancel();
-    _hasCapturedPhoto = true;
+    _captureImagePath = imagePath;
+    if (_captureMode == CaptureMode.replacePhoto) {
+      _capturePhase = CapturePhase.editing;
+      notifyListeners();
+      return;
+    }
     if (_settings.voiceGuidance) {
       _capturePhase = CapturePhase.guiding;
       notifyListeners();
-      // Mock Voice Guidance duration, then listen.
       _captureTimer = Timer(const Duration(milliseconds: 900), () {
         if (_capturePhase == CapturePhase.guiding) {
           startListening();
@@ -170,11 +239,16 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  /// Web / test helper: mark a photo as captured without a real camera file.
+  void takePhoto({String? mockImagePath}) {
+    onPhotoCaptured(mockImagePath ?? 'mock-captured');
+  }
+
   void startListening() {
     _captureTimer?.cancel();
     _capturePhase = CapturePhase.listening;
     notifyListeners();
-    // Mock speech-to-text result for reviewable UI.
+    // Mock speech-to-text until Step 3.
     _captureTimer = Timer(const Duration(milliseconds: 1400), () {
       if (_capturePhase == CapturePhase.listening &&
           _captureTranscript.trim().isEmpty) {
@@ -187,7 +261,7 @@ class AppState extends ChangeNotifier {
 
   void setCaptureTranscript(String value) {
     _captureTranscript = value;
-    if (_hasCapturedPhoto && value.trim().isNotEmpty) {
+    if (hasCapturedPhoto && value.trim().isNotEmpty) {
       _captureTimer?.cancel();
       _captureTimer = null;
       _capturePhase = CapturePhase.editing;
@@ -196,19 +270,34 @@ class AppState extends ChangeNotifier {
   }
 
   void retake() {
+    final previous = _captureImagePath;
     _resetCapture();
     notifyListeners();
+    // Best-effort cleanup of temp capture if it was under managed storage.
+    if (previous != null && !previous.startsWith('mock-')) {
+      unawaited(_imageStorage.deleteImage(previous));
+    }
   }
 
   @override
   void dispose() {
     _captureTimer?.cancel();
+    unawaited(_repository.close());
     super.dispose();
   }
 
   Future<bool> saveMemory() async {
+    if (_isSaving) return false;
+
+    if (_captureMode == CaptureMode.replacePhoto) {
+      return _saveReplacedPhoto();
+    }
+
     final text = _captureTranscript.trim();
-    if (!_hasCapturedPhoto || text.isEmpty) return false;
+    final sourcePath = _captureImagePath;
+    if (sourcePath == null || sourcePath.isEmpty || text.isEmpty) {
+      return false;
+    }
 
     if (!canAddMemory) {
       _showPaywall = true;
@@ -216,22 +305,103 @@ class AppState extends ChangeNotifier {
       return false;
     }
 
-    final now = DateTime.now();
-    final memory = Memory(
-      id: 'mem-${now.microsecondsSinceEpoch}',
-      transcript: text,
-      createdAt: now,
-      updatedAt: now,
-      imageAssetKey: 'mock-captured',
-    );
-    await _repository.upsert(memory);
-    _refreshMemories();
-    _resetCapture();
-    _route = AppRoute.home;
-    _searchQuery = '';
-    _snackMessage = 'Memory saved';
+    _isSaving = true;
+    _errorMessage = null;
     notifyListeners();
-    return true;
+
+    try {
+      final now = DateTime.now();
+      final id = _uuid.v4();
+      final persistedPath = await _persistOrKeep(sourcePath, id: id);
+      final memory = Memory(
+        id: id,
+        transcript: text,
+        createdAt: now,
+        updatedAt: now,
+        imagePath: persistedPath,
+      );
+      await _repository.upsert(memory);
+      _searchQuery = '';
+      await reloadMemories();
+      _resetCapture();
+      _captureMode = CaptureMode.create;
+      _replaceMemoryId = null;
+      _route = AppRoute.home;
+      _snackMessage = 'snackMemorySaved';
+      _isSaving = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _isSaving = false;
+      _errorMessage = 'saveFailed';
+      _snackMessage = 'saveMemoryFailed';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> _saveReplacedPhoto() async {
+    final memoryId = _replaceMemoryId;
+    final sourcePath = _captureImagePath;
+    if (memoryId == null || sourcePath == null || sourcePath.isEmpty) {
+      return false;
+    }
+
+    _isSaving = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final existing = await _repository.getById(memoryId);
+      if (existing == null) {
+        _isSaving = false;
+        _errorMessage = 'saveFailed';
+        notifyListeners();
+        return false;
+      }
+
+      final newPath = await _imageStorage.replaceImage(
+        sourcePath: sourcePath,
+        previousPath: existing.imagePath,
+        id: '$memoryId-${DateTime.now().millisecondsSinceEpoch}',
+      );
+      final updated = existing.copyWith(
+        imagePath: newPath,
+        updatedAt: DateTime.now(),
+      );
+      await _repository.upsert(updated);
+      await reloadMemories();
+      _resetCapture();
+      _captureMode = CaptureMode.create;
+      _replaceMemoryId = null;
+      _selectedMemory = updated;
+      _route = AppRoute.home;
+      _snackMessage = 'photoReplaced';
+      _isSaving = false;
+      notifyListeners();
+      return true;
+    } catch (_) {
+      _isSaving = false;
+      _errorMessage = 'saveFailed';
+      _snackMessage = 'replacePhotoFailed';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<String?> _persistOrKeep(
+    String sourcePath, {
+    required String id,
+  }) async {
+    if (kIsWeb || sourcePath.startsWith('mock-')) {
+      return sourcePath.startsWith('mock-') ? null : sourcePath;
+    }
+    final file = File(sourcePath);
+    if (!await file.exists()) {
+      // Allow tests that pass a synthetic path.
+      return sourcePath;
+    }
+    return _imageStorage.persistCapturedImage(sourcePath, id: id);
   }
 
   // --- Memory detail ---
@@ -253,32 +423,14 @@ class AppState extends ChangeNotifier {
   Future<void> updateSelectedTranscript(String transcript) async {
     final selected = _selectedMemory;
     if (selected == null) return;
-    final updated = Memory(
-      id: selected.id,
+    final updated = selected.copyWith(
       transcript: transcript.trim(),
-      createdAt: selected.createdAt,
       updatedAt: DateTime.now(),
-      imageAssetKey: selected.imageAssetKey,
     );
     await _repository.upsert(updated);
-    _refreshMemories();
+    await reloadMemories();
     _selectedMemory = updated;
-    _snackMessage = 'Memory updated';
-    notifyListeners();
-  }
-
-  /// Step 1: mock replace-photo (UI feedback only).
-  void mockReplacePhoto() {
-    final selected = _selectedMemory;
-    if (selected == null) return;
-    final updated = selected.copyWith(
-      imageAssetKey: 'mock-replaced-${DateTime.now().millisecondsSinceEpoch}',
-      updatedAt: DateTime.now(),
-    );
-    _repository.upsert(updated);
-    _refreshMemories();
-    _selectedMemory = updated;
-    _snackMessage = 'Photo replaced (mock)';
+    _snackMessage = 'snackMemoryUpdated';
     notifyListeners();
   }
 
@@ -296,11 +448,12 @@ class AppState extends ChangeNotifier {
     final selected = _selectedMemory;
     if (selected == null) return;
     await _repository.delete(selected.id);
-    _refreshMemories();
+    await _imageStorage.deleteImage(selected.imagePath);
+    await reloadMemories();
     _showDeleteConfirm = false;
     _showMemoryDetail = false;
     _selectedMemory = null;
-    _snackMessage = 'Memory deleted';
+    _snackMessage = 'snackMemoryDeleted';
     notifyListeners();
   }
 
@@ -319,7 +472,7 @@ class AppState extends ChangeNotifier {
   void setDailyReminder(bool value) {
     _settings = _settings.copyWith(dailyReminder: value);
     if (value) {
-      _snackMessage = 'Reminder scheduling will connect in a later step';
+      _snackMessage = 'snackReminderSchedulingMock';
     }
     notifyListeners();
   }
@@ -332,8 +485,7 @@ class AppState extends ChangeNotifier {
   void setAppLock(bool value) {
     _settings = _settings.copyWith(appLock: value);
     if (value) {
-      _snackMessage =
-          'App Lock stores credentials securely in a later step. For now this is UI state.';
+      _snackMessage = 'snackAppLockMockInfo';
     }
     notifyListeners();
   }
@@ -345,25 +497,25 @@ class AppState extends ChangeNotifier {
 
   void mockCreateBackup() {
     _settings = _settings.copyWith(lastBackupAt: DateTime.now());
-    _snackMessage = 'Backup created (mock)';
+    _snackMessage = 'snackBackupCreatedMock';
     notifyListeners();
   }
 
   void mockRestoreBackup() {
-    _snackMessage = 'Restore will connect in a later step';
+    _snackMessage = 'snackRestoreBackupMock';
     notifyListeners();
   }
 
   void unlockLifetime() {
     _settings = _settings.copyWith(isLifetimeUnlocked: true);
     _showPaywall = false;
-    _snackMessage = 'Lifetime unlocked (mock purchase)';
+    _snackMessage = 'snackLifetimeUnlockedMock';
     notifyListeners();
   }
 
   void mockRestorePurchase() {
     _settings = _settings.copyWith(isLifetimeUnlocked: true);
-    _snackMessage = 'Purchase restored (mock)';
+    _snackMessage = 'snackPurchaseRestoredMock';
     notifyListeners();
   }
 
@@ -400,7 +552,6 @@ class AppState extends ChangeNotifier {
     _pinInput += digit;
     notifyListeners();
     if (_pinInput.length == 4) {
-      // Step 1: any 4-digit PIN unlocks (real validation later).
       unlockWithBiometrics();
     }
   }
@@ -427,25 +578,28 @@ class AppState extends ChangeNotifier {
     _snackMessage = '';
   }
 
+  void clearError() {
+    _errorMessage = null;
+    notifyListeners();
+  }
+
   // --- Prototype / debug helpers ---
 
-  void prototypeShowEmptyHome() {
-    _repository.clear();
-    _refreshMemories();
+  Future<void> prototypeShowEmptyHome() async {
+    await _repository.clear();
     _searchQuery = '';
     _isLocked = false;
     _route = AppRoute.home;
     _dismissTransientOverlays(keepDetail: false);
-    notifyListeners();
+    await reloadMemories();
   }
 
-  void prototypeRestoreDemoMemories() {
-    _repository.replaceAll(createSeedMemories());
-    _refreshMemories();
+  Future<void> prototypeRestoreDemoMemories() async {
+    await _repository.replaceAll(createSeedMemories());
     _isLocked = false;
     _route = AppRoute.home;
     _dismissTransientOverlays(keepDetail: false);
-    notifyListeners();
+    await reloadMemories();
   }
 
   void prototypeShowOnboarding() {
@@ -464,9 +618,9 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void prototypeShowMemoryDetail() {
+  Future<void> prototypeShowMemoryDetail() async {
     if (_memories.isEmpty) {
-      prototypeRestoreDemoMemories();
+      await prototypeRestoreDemoMemories();
     }
     _route = AppRoute.home;
     _isLocked = false;
@@ -484,12 +638,6 @@ class AppState extends ChangeNotifier {
 
   // --- Internals ---
 
-  void _refreshMemories() {
-    final all = [..._repository.getAll()];
-    all.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
-    _memories = all;
-  }
-
   void _dismissTransientOverlays({required bool keepDetail}) {
     _showPaywall = false;
     _showDeleteConfirm = false;
@@ -497,15 +645,5 @@ class AppState extends ChangeNotifier {
       _showMemoryDetail = false;
       _selectedMemory = null;
     }
-  }
-
-  bool _fuzzyContains(String haystack, String needle) {
-    if (needle.length < 3) return false;
-    // Simple near-match: allow one missing contiguous character pair.
-    for (var i = 0; i < needle.length - 1; i++) {
-      final partial = needle.substring(0, i) + needle.substring(i + 1);
-      if (haystack.contains(partial)) return true;
-    }
-    return false;
   }
 }

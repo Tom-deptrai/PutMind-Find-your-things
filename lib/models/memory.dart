@@ -5,7 +5,7 @@ class Memory {
     required this.transcript,
     required this.createdAt,
     required this.updatedAt,
-    this.imageAssetKey,
+    this.imagePath,
     this.displayTitle,
     this.displayLocation,
   });
@@ -17,8 +17,8 @@ class Memory {
   final DateTime createdAt;
   final DateTime updatedAt;
 
-  /// Step 1: mock/placeholder key. Later steps will use local file paths.
-  final String? imageAssetKey;
+  /// Absolute local file path to the memory image (null = placeholder).
+  final String? imagePath;
 
   /// Optional display helpers inferred from transcript for cards.
   final String? displayTitle;
@@ -43,7 +43,8 @@ class Memory {
     String? transcript,
     DateTime? createdAt,
     DateTime? updatedAt,
-    String? imageAssetKey,
+    String? imagePath,
+    bool clearImagePath = false,
     String? displayTitle,
     String? displayLocation,
   }) {
@@ -52,9 +53,29 @@ class Memory {
       transcript: transcript ?? this.transcript,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
-      imageAssetKey: imageAssetKey ?? this.imageAssetKey,
+      imagePath: clearImagePath ? null : (imagePath ?? this.imagePath),
       displayTitle: displayTitle ?? this.displayTitle,
       displayLocation: displayLocation ?? this.displayLocation,
+    );
+  }
+
+  Map<String, Object?> toMap() {
+    return {
+      'id': id,
+      'transcript': transcript,
+      'image_path': imagePath,
+      'created_at': createdAt.millisecondsSinceEpoch,
+      'updated_at': updatedAt.millisecondsSinceEpoch,
+    };
+  }
+
+  factory Memory.fromMap(Map<String, Object?> map) {
+    return Memory(
+      id: map['id']! as String,
+      transcript: map['transcript']! as String,
+      imagePath: map['image_path'] as String?,
+      createdAt: DateTime.fromMillisecondsSinceEpoch(map['created_at']! as int),
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(map['updated_at']! as int),
     );
   }
 

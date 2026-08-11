@@ -54,7 +54,8 @@ Future<void> showMemoryDetailSheet({
                   ),
                 ),
                 const SizedBox(height: 13),
-                MemoryPhotoPlaceholder(
+                MemoryPhoto(
+                  imagePath: memory.imagePath,
                   height: 210,
                   borderRadius: BorderRadius.circular(19),
                   variant: memory.id.hashCode.abs(),

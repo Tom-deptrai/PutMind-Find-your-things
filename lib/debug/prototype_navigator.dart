@@ -46,7 +46,7 @@ class _PrototypeNavigatorState extends State<PrototypeNavigator> {
 
   Future<void> _openDetail() async {
     setState(() => _open = false);
-    state.prototypeShowMemoryDetail();
+    await state.prototypeShowMemoryDetail();
     final memory = state.selectedMemory;
     if (memory == null || !mounted) return;
     await showMemoryDetailSheet(
@@ -64,8 +64,7 @@ class _PrototypeNavigatorState extends State<PrototypeNavigator> {
         );
       },
       onReplacePhoto: () {
-        state.openMemoryDetail(memory);
-        state.mockReplacePhoto();
+        state.openReplacePhoto(memory);
       },
       onDelete: () async {
         state.openMemoryDetail(memory);
@@ -161,7 +160,9 @@ class _PrototypeNavigatorState extends State<PrototypeNavigator> {
                       children: [
                         _ProtoButton(
                           label: l10n.protoHome,
-                          onTap: () => _go(state.prototypeRestoreDemoMemories),
+                          onTap: () => _go(() {
+                            state.prototypeRestoreDemoMemories();
+                          }),
                         ),
                         _ProtoButton(
                           label: l10n.protoCapture,
@@ -181,7 +182,9 @@ class _PrototypeNavigatorState extends State<PrototypeNavigator> {
                         ),
                         _ProtoButton(
                           label: l10n.protoEmptyHome,
-                          onTap: () => _go(state.prototypeShowEmptyHome),
+                          onTap: () => _go(() {
+                            state.prototypeShowEmptyHome();
+                          }),
                         ),
                         _ProtoButton(
                           label: l10n.protoMemoryDetail,

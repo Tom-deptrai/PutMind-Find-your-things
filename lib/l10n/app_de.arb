@@ -118,5 +118,20 @@
   "autoLockFiveMinutes": "Nach 5 Minuten",
   "autoLockFifteenMinutes": "Nach 15 Minuten",
   "never": "Nie",
-  "lifetimeCardLocked": "Unbegrenzte Erinnerungen · {price} einmal · {used}/{limit} genutzt"
+  "lifetimeCardLocked": "Unbegrenzte Erinnerungen · {price} einmal · {used}/{limit} genutzt",
+  "cameraPermissionTitle": "Kamerazugriff erforderlich",
+  "cameraPermissionDenied": "PutMind braucht die Kamera, um zu fotografieren, was du wegräumst. Du kannst sie in den Einstellungen aktivieren.",
+  "cameraPermissionRetry": "Erneut versuchen",
+  "cameraPermissionOpenSettings": "Einstellungen öffnen",
+  "cameraUnavailableTitle": "Kamera nicht verfügbar",
+  "cameraUnavailableBody": "Die Kamera konnte auf diesem Gerät nicht geöffnet werden. Bitte erneut versuchen.",
+  "cameraWebMockHint": "Die Web-Vorschau nutzt eine Mock-Kamera. Tippe auf den Auslöser, um fortzufahren.",
+  "captureReplaceTitle": "Foto ersetzen",
+  "replacePhotoConfirmTitle": "Dieses Foto verwenden?",
+  "replacePhotoConfirmBody": "Das Foto dieser Erinnerung wird ersetzt. Das Transkript bleibt gleich.",
+  "replacePhotoUsePhoto": "Foto verwenden",
+  "savingMemory": "Speichern…",
+  "photoReplaced": "Foto ersetzt",
+  "saveMemoryFailed": "Erinnerung konnte nicht gespeichert werden. Bitte erneut versuchen.",
+  "replacePhotoFailed": "Foto konnte nicht ersetzt werden. Bitte erneut versuchen."
 }

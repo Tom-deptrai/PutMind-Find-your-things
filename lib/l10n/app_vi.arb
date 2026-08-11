@@ -118,5 +118,20 @@
   "autoLockFiveMinutes": "Sau 5 phút",
   "autoLockFifteenMinutes": "Sau 15 phút",
   "never": "Không bao giờ",
-  "lifetimeCardLocked": "Kỷ niệm không giới hạn · {price} một lần · {used}/{limit} đã dùng"
+  "lifetimeCardLocked": "Kỷ niệm không giới hạn · {price} một lần · {used}/{limit} đã dùng",
+  "cameraPermissionTitle": "Cần quyền truy cập camera",
+  "cameraPermissionDenied": "PutMind cần camera để chụp món đồ bạn đang cất. Bạn có thể bật trong Cài đặt.",
+  "cameraPermissionRetry": "Thử lại",
+  "cameraPermissionOpenSettings": "Mở Cài đặt",
+  "cameraUnavailableTitle": "Không dùng được camera",
+  "cameraUnavailableBody": "Không mở được camera trên thiết bị này. Vui lòng thử lại.",
+  "cameraWebMockHint": "Bản xem web dùng camera giả. Chạm nút chụp để tiếp tục.",
+  "captureReplaceTitle": "Thay ảnh",
+  "replacePhotoConfirmTitle": "Dùng ảnh này?",
+  "replacePhotoConfirmBody": "Ảnh của kỷ niệm này sẽ được thay. Nội dung transcript giữ nguyên.",
+  "replacePhotoUsePhoto": "Dùng ảnh",
+  "savingMemory": "Đang lưu…",
+  "photoReplaced": "Đã thay ảnh",
+  "saveMemoryFailed": "Không lưu được kỷ niệm. Vui lòng thử lại.",
+  "replacePhotoFailed": "Không thay được ảnh. Vui lòng thử lại."
 }

@@ -2,15 +2,17 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'debug/prototype_navigator.dart';
+import 'l10n/app_localizations.dart';
 import 'screens/capture_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/unlock_screen.dart';
+import 'services/image_storage.dart';
+import 'services/repository_factory.dart';
 import 'state/app_state.dart';
 import 'theme/app_theme.dart';
 import 'widgets/mobile_viewport_frame.dart';
-import 'l10n/app_localizations.dart';
 
 class PutMindApp extends StatefulWidget {
   const PutMindApp({super.key, this.state});
@@ -23,7 +25,8 @@ class PutMindApp extends StatefulWidget {
 }
 
 class _PutMindAppState extends State<PutMindApp> {
-  late final AppState _state = widget.state ?? AppState();
+  AppState? _state;
+  bool _bootstrapping = false;
   final GlobalKey<ScaffoldMessengerState> _messengerKey =
       GlobalKey<ScaffoldMessengerState>();
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
@@ -31,48 +34,109 @@ class _PutMindAppState extends State<PutMindApp> {
   @override
   void initState() {
     super.initState();
-    _state.addListener(_onStateChanged);
+    if (widget.state != null) {
+      _state = widget.state;
+      _state!.addListener(_onStateChanged);
+    } else {
+      _bootstrapping = true;
+      _bootstrap();
+    }
+  }
+
+  Future<void> _bootstrap() async {
+    final repository = await createMemoryRepository();
+    final imageStorage = await ImageStorage.create();
+    final state = await AppState.create(
+      repository: repository,
+      imageStorage: imageStorage,
+    );
+    if (!mounted) {
+      state.dispose();
+      return;
+    }
+    setState(() {
+      _state = state;
+      _bootstrapping = false;
+    });
+    _state!.addListener(_onStateChanged);
   }
 
   @override
   void dispose() {
-    _state.removeListener(_onStateChanged);
+    _state?.removeListener(_onStateChanged);
     if (widget.state == null) {
-      _state.dispose();
+      _state?.dispose();
     }
     super.dispose();
   }
 
   void _onStateChanged() {
-    final message = _state.snackMessage;
-    if (message.isNotEmpty) {
+    final state = _state;
+    if (state == null) return;
+    final messageKey = state.snackMessage;
+    if (messageKey.isNotEmpty) {
+      final loc = _messengerKey.currentContext == null
+          ? null
+          : AppLocalizations.of(_messengerKey.currentContext!);
+      final text = _localizeSnack(loc, messageKey);
       _messengerKey.currentState
         ?..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text(message)));
-      _state.clearSnack();
+        ..showSnackBar(SnackBar(content: Text(text)));
+      state.clearSnack();
     }
     setState(() {});
   }
 
-  Widget _screenFor(AppRoute route) {
+  String _localizeSnack(AppLocalizations? loc, String key) {
+    if (loc == null) return key;
+    return switch (key) {
+      'snackMemorySaved' => loc.snackMemorySaved,
+      'snackMemoryUpdated' => loc.snackMemoryUpdated,
+      'snackMemoryDeleted' => loc.snackMemoryDeleted,
+      'photoReplaced' => loc.photoReplaced,
+      'saveMemoryFailed' => loc.saveMemoryFailed,
+      'replacePhotoFailed' => loc.replacePhotoFailed,
+      'snackAppLockMockInfo' => loc.snackAppLockMockInfo,
+      'snackReminderSchedulingMock' => loc.snackReminderSchedulingMock,
+      'snackBackupCreatedMock' => loc.snackBackupCreatedMock,
+      'snackRestoreBackupMock' => loc.snackRestoreBackupMock,
+      'snackLifetimeUnlockedMock' => loc.snackLifetimeUnlockedMock,
+      'snackPurchaseRestoredMock' => loc.snackPurchaseRestoredMock,
+      'snackPhotoReplacedMock' => loc.snackPhotoReplacedMock,
+      _ => key,
+    };
+  }
+
+  Widget _screenFor(AppState state, AppRoute route) {
     switch (route) {
       case AppRoute.home:
-        return HomeScreen(state: _state);
+        return HomeScreen(state: state);
       case AppRoute.capture:
-        return CaptureScreen(state: _state);
+        return CaptureScreen(state: state);
       case AppRoute.settings:
-        return SettingsScreen(state: _state);
+        return SettingsScreen(state: state);
       case AppRoute.unlock:
-        return UnlockScreen(state: _state);
+        return UnlockScreen(state: state);
       case AppRoute.onboarding:
-        return OnboardingScreen(state: _state);
+        return OnboardingScreen(state: state);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final state = _state;
+
+    if (state == null || _bootstrapping) {
+      return MaterialApp(
+        title: 'PutMind',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.light(),
+        home: const Scaffold(body: Center(child: CircularProgressIndicator())),
+      );
+    }
+
     final prototype = kDebugMode
-        ? PrototypeNavigator(state: _state, navigatorKey: _navigatorKey)
+        ? PrototypeNavigator(state: state, navigatorKey: _navigatorKey)
         : null;
 
     return MaterialApp(
@@ -81,7 +145,7 @@ class _PutMindAppState extends State<PutMindApp> {
       theme: AppTheme.light(),
       scaffoldMessengerKey: _messengerKey,
       navigatorKey: _navigatorKey,
-      locale: _state.settings.language.locale,
+      locale: state.settings.language.locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       builder: (context, child) {
@@ -97,8 +161,8 @@ class _PutMindAppState extends State<PutMindApp> {
       home: AnimatedSwitcher(
         duration: const Duration(milliseconds: 180),
         child: KeyedSubtree(
-          key: ValueKey(_state.route),
-          child: _screenFor(_state.route),
+          key: ValueKey('${state.route}-${state.captureMode}'),
+          child: _screenFor(state, state.route),
         ),
       ),
     );

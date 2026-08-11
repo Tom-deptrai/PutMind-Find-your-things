@@ -388,6 +388,57 @@ class AppLocalizationsPt extends AppLocalizations {
   String lifetimeCardLocked(Object limit, Object price, Object used) {
     return 'Memórias ilimitadas · $price uma vez · $used/$limit usado';
   }
+
+  @override
+  String get cameraPermissionTitle => 'Acesso à câmera necessário';
+
+  @override
+  String get cameraPermissionDenied =>
+      'O PutMind precisa da câmera para fotografar o que você está guardando. Você pode ativá-la em Configurações.';
+
+  @override
+  String get cameraPermissionRetry => 'Tentar novamente';
+
+  @override
+  String get cameraPermissionOpenSettings => 'Abrir Configurações';
+
+  @override
+  String get cameraUnavailableTitle => 'Câmera indisponível';
+
+  @override
+  String get cameraUnavailableBody =>
+      'Não foi possível abrir a câmera neste dispositivo. Tente novamente.';
+
+  @override
+  String get cameraWebMockHint =>
+      'A prévia web usa uma câmera simulada. Toque no obturador para continuar.';
+
+  @override
+  String get captureReplaceTitle => 'Substituir foto';
+
+  @override
+  String get replacePhotoConfirmTitle => 'Usar esta foto?';
+
+  @override
+  String get replacePhotoConfirmBody =>
+      'Isso substitui a foto desta memória. A transcrição permanece a mesma.';
+
+  @override
+  String get replacePhotoUsePhoto => 'Usar foto';
+
+  @override
+  String get savingMemory => 'Salvando…';
+
+  @override
+  String get photoReplaced => 'Foto substituída';
+
+  @override
+  String get saveMemoryFailed =>
+      'Não foi possível salvar esta memória. Tente novamente.';
+
+  @override
+  String get replacePhotoFailed =>
+      'Não foi possível substituir esta foto. Tente novamente.';
 }
 
 /// The translations for Portuguese, as used in Brazil (`pt_BR`).
@@ -774,4 +825,55 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   String lifetimeCardLocked(Object limit, Object price, Object used) {
     return 'Memórias ilimitadas · $price uma vez · $used/$limit usado';
   }
+
+  @override
+  String get cameraPermissionTitle => 'Acesso à câmera necessário';
+
+  @override
+  String get cameraPermissionDenied =>
+      'O PutMind precisa da câmera para fotografar o que você está guardando. Você pode ativá-la em Configurações.';
+
+  @override
+  String get cameraPermissionRetry => 'Tentar novamente';
+
+  @override
+  String get cameraPermissionOpenSettings => 'Abrir Configurações';
+
+  @override
+  String get cameraUnavailableTitle => 'Câmera indisponível';
+
+  @override
+  String get cameraUnavailableBody =>
+      'Não foi possível abrir a câmera neste dispositivo. Tente novamente.';
+
+  @override
+  String get cameraWebMockHint =>
+      'A prévia web usa uma câmera simulada. Toque no obturador para continuar.';
+
+  @override
+  String get captureReplaceTitle => 'Substituir foto';
+
+  @override
+  String get replacePhotoConfirmTitle => 'Usar esta foto?';
+
+  @override
+  String get replacePhotoConfirmBody =>
+      'Isso substitui a foto desta memória. A transcrição permanece a mesma.';
+
+  @override
+  String get replacePhotoUsePhoto => 'Usar foto';
+
+  @override
+  String get savingMemory => 'Salvando…';
+
+  @override
+  String get photoReplaced => 'Foto substituída';
+
+  @override
+  String get saveMemoryFailed =>
+      'Não foi possível salvar esta memória. Tente novamente.';
+
+  @override
+  String get replacePhotoFailed =>
+      'Não foi possível substituir esta foto. Tente novamente.';
 }

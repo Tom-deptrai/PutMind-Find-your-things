@@ -118,5 +118,20 @@
   "autoLockFiveMinutes": "Após 5 minutos",
   "autoLockFifteenMinutes": "Após 15 minutos",
   "never": "Nunca",
-  "lifetimeCardLocked": "Memórias ilimitadas · {price} uma vez · {used}/{limit} usado"
+  "lifetimeCardLocked": "Memórias ilimitadas · {price} uma vez · {used}/{limit} usado",
+  "cameraPermissionTitle": "Acesso à câmera necessário",
+  "cameraPermissionDenied": "O PutMind precisa da câmera para fotografar o que você está guardando. Você pode ativá-la em Configurações.",
+  "cameraPermissionRetry": "Tentar novamente",
+  "cameraPermissionOpenSettings": "Abrir Configurações",
+  "cameraUnavailableTitle": "Câmera indisponível",
+  "cameraUnavailableBody": "Não foi possível abrir a câmera neste dispositivo. Tente novamente.",
+  "cameraWebMockHint": "A prévia web usa uma câmera simulada. Toque no obturador para continuar.",
+  "captureReplaceTitle": "Substituir foto",
+  "replacePhotoConfirmTitle": "Usar esta foto?",
+  "replacePhotoConfirmBody": "Isso substitui a foto desta memória. A transcrição permanece a mesma.",
+  "replacePhotoUsePhoto": "Usar foto",
+  "savingMemory": "Salvando…",
+  "photoReplaced": "Foto substituída",
+  "saveMemoryFailed": "Não foi possível salvar esta memória. Tente novamente.",
+  "replacePhotoFailed": "Não foi possível substituir esta foto. Tente novamente."
 }

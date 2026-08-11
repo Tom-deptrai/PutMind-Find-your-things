@@ -374,6 +374,51 @@ class AppLocalizationsZh extends AppLocalizations {
   String lifetimeCardLocked(Object limit, Object price, Object used) {
     return 'Unlimited memories · $price once · $used/$limit used';
   }
+
+  @override
+  String get cameraPermissionTitle => '需要相機權限';
+
+  @override
+  String get cameraPermissionDenied => 'PutMind 需要相機來拍攝你正在收起的物品。你可以在設定中開啟。';
+
+  @override
+  String get cameraPermissionRetry => '再試一次';
+
+  @override
+  String get cameraPermissionOpenSettings => '開啟設定';
+
+  @override
+  String get cameraUnavailableTitle => '無法使用相機';
+
+  @override
+  String get cameraUnavailableBody => '無法在此裝置開啟相機。請再試一次。';
+
+  @override
+  String get cameraWebMockHint => '網頁預覽使用模擬相機。點擊快門以繼續。';
+
+  @override
+  String get captureReplaceTitle => '替換照片';
+
+  @override
+  String get replacePhotoConfirmTitle => '使用這張照片？';
+
+  @override
+  String get replacePhotoConfirmBody => '這會替換此記憶的照片。文字內容保持不變。';
+
+  @override
+  String get replacePhotoUsePhoto => '使用照片';
+
+  @override
+  String get savingMemory => '儲存中…';
+
+  @override
+  String get photoReplaced => '已替換照片';
+
+  @override
+  String get saveMemoryFailed => '無法儲存此記憶。請再試一次。';
+
+  @override
+  String get replacePhotoFailed => '無法替換此照片。請再試一次。';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -746,4 +791,49 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String lifetimeCardLocked(Object limit, Object price, Object used) {
     return '無限記憶 · $price 一次 · $used/$limit 已使用';
   }
+
+  @override
+  String get cameraPermissionTitle => '需要相機權限';
+
+  @override
+  String get cameraPermissionDenied => 'PutMind 需要相機來拍攝你正在收起的物品。你可以在設定中開啟。';
+
+  @override
+  String get cameraPermissionRetry => '再試一次';
+
+  @override
+  String get cameraPermissionOpenSettings => '開啟設定';
+
+  @override
+  String get cameraUnavailableTitle => '無法使用相機';
+
+  @override
+  String get cameraUnavailableBody => '無法在此裝置開啟相機。請再試一次。';
+
+  @override
+  String get cameraWebMockHint => '網頁預覽使用模擬相機。點擊快門以繼續。';
+
+  @override
+  String get captureReplaceTitle => '替換照片';
+
+  @override
+  String get replacePhotoConfirmTitle => '使用這張照片？';
+
+  @override
+  String get replacePhotoConfirmBody => '這會替換此記憶的照片。文字內容保持不變。';
+
+  @override
+  String get replacePhotoUsePhoto => '使用照片';
+
+  @override
+  String get savingMemory => '儲存中…';
+
+  @override
+  String get photoReplaced => '已替換照片';
+
+  @override
+  String get saveMemoryFailed => '無法儲存此記憶。請再試一次。';
+
+  @override
+  String get replacePhotoFailed => '無法替換此照片。請再試一次。';
 }

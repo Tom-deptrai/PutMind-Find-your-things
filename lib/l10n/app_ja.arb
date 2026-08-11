@@ -118,5 +118,20 @@
   "autoLockFiveMinutes": "5分後",
   "autoLockFifteenMinutes": "15分後",
   "never": "なし",
-  "lifetimeCardLocked": "無制限メモリー · {price}（1回） · {used}/{limit} 使用中"
+  "lifetimeCardLocked": "無制限メモリー · {price}（1回） · {used}/{limit} 使用中",
+  "cameraPermissionTitle": "カメラへのアクセスが必要です",
+  "cameraPermissionDenied": "PutMindは片付けるものを撮影するためにカメラが必要です。設定で有効にできます。",
+  "cameraPermissionRetry": "再試行",
+  "cameraPermissionOpenSettings": "設定を開く",
+  "cameraUnavailableTitle": "カメラを利用できません",
+  "cameraUnavailableBody": "この端末でカメラを開けませんでした。もう一度お試しください。",
+  "cameraWebMockHint": "Webプレビューではモックカメラを使います。シャッターをタップして続けてください。",
+  "captureReplaceTitle": "写真を置き換える",
+  "replacePhotoConfirmTitle": "この写真を使いますか？",
+  "replacePhotoConfirmBody": "このメモリーの写真を置き換えます。文字起こしはそのままです。",
+  "replacePhotoUsePhoto": "この写真を使う",
+  "savingMemory": "保存中…",
+  "photoReplaced": "写真を置き換えました",
+  "saveMemoryFailed": "メモリーを保存できませんでした。もう一度お試しください。",
+  "replacePhotoFailed": "写真を置き換えできませんでした。もう一度お試しください。"
 }

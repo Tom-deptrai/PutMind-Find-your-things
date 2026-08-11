@@ -1,5 +1,11 @@
-import 'package:flutter/material.dart';
+import 'dart:io';
 
+import 'package:camera/camera.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
+
+import '../l10n/app_localizations.dart';
 import '../state/app_state.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_radius.dart';
@@ -7,8 +13,6 @@ import '../theme/app_typography.dart';
 import '../widgets/app_dialogs.dart';
 import '../widgets/app_icon_button.dart';
 import '../widgets/app_switch.dart';
-import '../widgets/photo_placeholder.dart';
-import '../l10n/app_localizations.dart';
 
 class CaptureScreen extends StatefulWidget {
   const CaptureScreen({super.key, required this.state});
@@ -19,25 +23,47 @@ class CaptureScreen extends StatefulWidget {
   State<CaptureScreen> createState() => _CaptureScreenState();
 }
 
-class _CaptureScreenState extends State<CaptureScreen> {
+class _CaptureScreenState extends State<CaptureScreen>
+    with WidgetsBindingObserver {
   late final TextEditingController _transcriptController;
+  CameraController? _cameraController;
+  Future<void>? _cameraInit;
+  bool _permissionDenied = false;
+  bool _cameraError = false;
+  bool _takingPicture = false;
+  String? _webMockNote;
 
   AppState get state => widget.state;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _transcriptController = TextEditingController(
       text: state.captureTranscript,
     );
     state.addListener(_syncTranscript);
+    _prepareCamera();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     state.removeListener(_syncTranscript);
     _transcriptController.dispose();
+    _disposeCamera();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState lifecycle) {
+    final controller = _cameraController;
+    if (controller == null || !controller.value.isInitialized) return;
+    if (lifecycle == AppLifecycleState.inactive) {
+      _disposeCamera();
+    } else if (lifecycle == AppLifecycleState.resumed) {
+      _prepareCamera();
+    }
   }
 
   void _syncTranscript() {
@@ -49,16 +75,112 @@ class _CaptureScreenState extends State<CaptureScreen> {
     }
   }
 
-  String get _promptLabel {
+  Future<void> _disposeCamera() async {
+    final controller = _cameraController;
+    _cameraController = null;
+    _cameraInit = null;
+    await controller?.dispose();
+  }
+
+  Future<void> _prepareCamera() async {
+    if (state.hasCapturedPhoto) return;
+
+    // Web preview + widget tests use a mock shutter (native camera is source of truth).
+    final isTest = Platform.environment.containsKey('FLUTTER_TEST');
+    if (kIsWeb || isTest) {
+      setState(() {
+        _webMockNote = kIsWeb ? 'web' : 'test';
+        _permissionDenied = false;
+        _cameraError = false;
+      });
+      return;
+    }
+
+    setState(() {
+      _permissionDenied = false;
+      _cameraError = false;
+    });
+
+    final status = await Permission.camera.request();
+    if (!status.isGranted) {
+      if (mounted) {
+        setState(() => _permissionDenied = true);
+      }
+      return;
+    }
+
+    try {
+      final cameras = await availableCameras();
+      if (cameras.isEmpty) {
+        if (mounted) setState(() => _cameraError = true);
+        return;
+      }
+      final camera = cameras.firstWhere(
+        (c) => c.lensDirection == CameraLensDirection.back,
+        orElse: () => cameras.first,
+      );
+      final controller = CameraController(
+        camera,
+        ResolutionPreset.high,
+        enableAudio: false,
+        imageFormatGroup: ImageFormatGroup.jpeg,
+      );
+      _cameraController = controller;
+      _cameraInit = controller.initialize();
+      await _cameraInit;
+      if (mounted) setState(() {});
+    } catch (_) {
+      await _disposeCamera();
+      if (mounted) setState(() => _cameraError = true);
+    }
+  }
+
+  Future<void> _takePicture() async {
+    if (_takingPicture || state.hasCapturedPhoto) return;
+
+    if (kIsWeb || _webMockNote != null || _cameraController == null) {
+      state.takePhoto(mockImagePath: 'mock-captured');
+      setState(() {});
+      return;
+    }
+
+    final controller = _cameraController!;
+    if (!controller.value.isInitialized || controller.value.isTakingPicture) {
+      return;
+    }
+
+    setState(() => _takingPicture = true);
+    try {
+      final file = await controller.takePicture();
+      state.onPhotoCaptured(file.path);
+      await _disposeCamera();
+      if (mounted) setState(() => _takingPicture = false);
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _takingPicture = false;
+          _cameraError = true;
+        });
+      }
+    }
+  }
+
+  Future<void> _retake() async {
+    state.retake();
+    await _prepareCamera();
+    if (mounted) setState(() {});
+  }
+
+  String _promptLabel(AppLocalizations l10n) {
     switch (state.capturePhase) {
       case CapturePhase.preview:
-        return AppLocalizations.of(context)!.capturePromptPreview;
+        return l10n.capturePromptPreview;
       case CapturePhase.guiding:
-        return AppLocalizations.of(context)!.capturePromptGuiding;
+        return l10n.capturePromptGuiding;
       case CapturePhase.listening:
-        return AppLocalizations.of(context)!.capturePromptListening;
+        return l10n.capturePromptListening;
       case CapturePhase.editing:
-        return AppLocalizations.of(context)!.capturePromptEditing;
+        return l10n.capturePromptEditing;
     }
   }
 
@@ -70,11 +192,89 @@ class _CaptureScreenState extends State<CaptureScreen> {
     }
   }
 
+  Widget _buildPreview(AppLocalizations l10n) {
+    final captured = state.hasCapturedPhoto;
+    if (captured) {
+      final path = state.captureImagePath;
+      if (path != null &&
+          !kIsWeb &&
+          !path.startsWith('mock-') &&
+          File(path).existsSync()) {
+        return Image.file(File(path), fit: BoxFit.cover);
+      }
+      return const CapturePreviewFallback(captured: true);
+    }
+
+    if (_permissionDenied) {
+      return _PermissionDeniedView(
+        onRetry: _prepareCamera,
+        onOpenSettings: openAppSettings,
+      );
+    }
+
+    if (_cameraError) {
+      return _CameraMessageView(
+        title: l10n.cameraUnavailableTitle,
+        body: l10n.cameraUnavailableBody,
+        actionLabel: l10n.cameraPermissionRetry,
+        onAction: _prepareCamera,
+      );
+    }
+
+    if (kIsWeb || _webMockNote != null) {
+      return CapturePreviewFallback(
+        captured: false,
+        label: kIsWeb ? l10n.cameraWebMockHint : null,
+        onShutter: _takePicture,
+      );
+    }
+
+    final controller = _cameraController;
+    if (controller == null || _cameraInit == null) {
+      return const ColoredBox(
+        color: Color(0xFF1A221E),
+        child: Center(child: CircularProgressIndicator(color: Colors.white)),
+      );
+    }
+
+    return FutureBuilder<void>(
+      future: _cameraInit,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const ColoredBox(
+            color: Color(0xFF1A221E),
+            child: Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            ),
+          );
+        }
+        if (snapshot.hasError || !controller.value.isInitialized) {
+          return _CameraMessageView(
+            title: l10n.cameraUnavailableTitle,
+            body: l10n.cameraUnavailableBody,
+            actionLabel: l10n.cameraPermissionRetry,
+            onAction: _prepareCamera,
+          );
+        }
+        return FittedBox(
+          fit: BoxFit.cover,
+          child: SizedBox(
+            width: controller.value.previewSize?.height ?? 1,
+            height: controller.value.previewSize?.width ?? 1,
+            child: CameraPreview(controller),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final bottomPad = MediaQuery.paddingOf(context).bottom;
     final keyboard = MediaQuery.viewInsetsOf(context).bottom;
     final captured = state.hasCapturedPhoto;
+    final isReplace = state.captureMode == CaptureMode.replacePhoto;
 
     return Scaffold(
       backgroundColor: AppColors.captureBg,
@@ -96,7 +296,9 @@ class _CaptureScreenState extends State<CaptureScreen> {
                     ),
                     Expanded(
                       child: Text(
-                        AppLocalizations.of(context)!.captureTitle,
+                        isReplace
+                            ? l10n.captureReplaceTitle
+                            : l10n.captureTitle,
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           color: AppColors.white,
@@ -115,32 +317,18 @@ class _CaptureScreenState extends State<CaptureScreen> {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  CapturePreviewPlaceholder(captured: captured),
-                  if (!captured)
+                  _buildPreview(l10n),
+                  if (!captured &&
+                      !_permissionDenied &&
+                      !_cameraError &&
+                      _webMockNote == null)
                     Align(
                       alignment: Alignment.bottomCenter,
                       child: Padding(
                         padding: const EdgeInsets.only(bottom: 28),
-                        child: GestureDetector(
-                          onTap: state.takePhoto,
-                          child: Container(
-                            width: 74,
-                            height: 74,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 4),
-                            ),
-                            child: Center(
-                              child: Container(
-                                width: 58,
-                                height: 58,
-                                decoration: const BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                            ),
-                          ),
+                        child: _ShutterButton(
+                          busy: _takingPicture,
+                          onPressed: _takePicture,
                         ),
                       ),
                     ),
@@ -163,113 +351,131 @@ class _CaptureScreenState extends State<CaptureScreen> {
                 ),
               ),
               child: captured
-                  ? Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          AppLocalizations.of(context)!.capturePromptTitle,
-                          style: AppTypography.captureTitle,
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Text(
-                              AppLocalizations.of(context)!.voiceGuidanceLabel,
-                              style: AppTypography.toggle,
-                            ),
-                            const SizedBox(width: 7),
-                            AppSwitch(
-                              value: state.settings.voiceGuidance,
-                              onChanged: state.setVoiceGuidance,
-                            ),
-                            const SizedBox(width: 7),
-                            Text(
-                              state.settings.voiceGuidance
-                                  ? AppLocalizations.of(
-                                      context,
-                                    )!.voiceGuidanceOn
-                                  : AppLocalizations.of(
-                                      context,
-                                    )!.voiceGuidanceOff,
-                              style: AppTypography.toggle.copyWith(
-                                fontWeight: FontWeight.w700,
+                  ? (isReplace
+                        ? _ReplacePhotoSheet(
+                            onRetake: _retake,
+                            onSave: state.isSaving ? null : _save,
+                            saving: state.isSaving,
+                          )
+                        : Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text(
+                                l10n.capturePromptTitle,
+                                style: AppTypography.captureTitle,
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(_promptLabel, style: AppTypography.prompt),
-                        const SizedBox(height: 8),
-                        if (state.capturePhase == CapturePhase.listening ||
-                            state.capturePhase == CapturePhase.guiding)
-                          const _Waveform()
-                        else
-                          const SizedBox(height: 8),
-                        TextField(
-                          controller: _transcriptController,
-                          onChanged: state.setCaptureTranscript,
-                          maxLines: 3,
-                          minLines: 2,
-                          decoration: InputDecoration(
-                            hintText: AppLocalizations.of(
-                              context,
-                            )!.captureTranscriptHint,
-                            filled: true,
-                            fillColor: AppColors.white,
-                            contentPadding: const EdgeInsets.all(10),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(AppRadius.md),
-                              borderSide: const BorderSide(
-                                color: AppColors.line,
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      l10n.voiceGuidanceLabel,
+                                      style: AppTypography.toggle,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 7),
+                                  AppSwitch(
+                                    value: state.settings.voiceGuidance,
+                                    onChanged: state.setVoiceGuidance,
+                                  ),
+                                  const SizedBox(width: 7),
+                                  Text(
+                                    state.settings.voiceGuidance
+                                        ? l10n.voiceGuidanceOn
+                                        : l10n.voiceGuidanceOff,
+                                    style: AppTypography.toggle.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(AppRadius.md),
-                              borderSide: const BorderSide(
-                                color: AppColors.line,
+                              const SizedBox(height: 8),
+                              Text(
+                                _promptLabel(l10n),
+                                style: AppTypography.prompt,
                               ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(AppRadius.md),
-                              borderSide: const BorderSide(
-                                color: AppColors.accent,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: OutlinedButton(
-                                onPressed: state.retake,
-                                child: Text(
-                                  AppLocalizations.of(context)!.captureRetake,
+                              const SizedBox(height: 8),
+                              if (state.capturePhase ==
+                                      CapturePhase.listening ||
+                                  state.capturePhase == CapturePhase.guiding)
+                                const _Waveform()
+                              else
+                                const SizedBox(height: 8),
+                              TextField(
+                                controller: _transcriptController,
+                                onChanged: state.setCaptureTranscript,
+                                maxLines: 3,
+                                minLines: 2,
+                                decoration: InputDecoration(
+                                  hintText: l10n.captureTranscriptHint,
+                                  filled: true,
+                                  fillColor: AppColors.white,
+                                  contentPadding: const EdgeInsets.all(10),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(
+                                      AppRadius.md,
+                                    ),
+                                    borderSide: const BorderSide(
+                                      color: AppColors.line,
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(
+                                      AppRadius.md,
+                                    ),
+                                    borderSide: const BorderSide(
+                                      color: AppColors.line,
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(
+                                      AppRadius.md,
+                                    ),
+                                    borderSide: const BorderSide(
+                                      color: AppColors.accent,
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              flex: 2,
-                              child: ElevatedButton(
-                                onPressed:
-                                    state.captureTranscript.trim().isEmpty
-                                    ? null
-                                    : _save,
-                                child: Text(
-                                  AppLocalizations.of(context)!.captureSave,
-                                ),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: OutlinedButton(
+                                      onPressed: state.isSaving
+                                          ? null
+                                          : _retake,
+                                      child: Text(l10n.captureRetake),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    flex: 2,
+                                    child: ElevatedButton(
+                                      onPressed:
+                                          state.captureTranscript
+                                                  .trim()
+                                                  .isEmpty ||
+                                              state.isSaving
+                                          ? null
+                                          : _save,
+                                      child: Text(
+                                        state.isSaving
+                                            ? l10n.savingMemory
+                                            : l10n.captureSave,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    )
+                            ],
+                          ))
                   : Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
                       child: Text(
-                        AppLocalizations.of(context)!.captureSnapMessage,
+                        l10n.captureSnapMessage,
                         style: AppTypography.body,
                         textAlign: TextAlign.center,
                       ),
@@ -278,6 +484,261 @@ class _CaptureScreenState extends State<CaptureScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ShutterButton extends StatelessWidget {
+  const _ShutterButton({required this.onPressed, this.busy = false});
+
+  final VoidCallback onPressed;
+  final bool busy;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: busy ? null : onPressed,
+      child: Container(
+        width: 74,
+        height: 74,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white, width: 4),
+        ),
+        child: Center(
+          child: busy
+              ? const SizedBox(
+                  width: 28,
+                  height: 28,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : Container(
+                  width: 58,
+                  height: 58,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ReplacePhotoSheet extends StatelessWidget {
+  const _ReplacePhotoSheet({
+    required this.onRetake,
+    required this.onSave,
+    required this.saving,
+  });
+
+  final VoidCallback onRetake;
+  final VoidCallback? onSave;
+  final bool saving;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(l10n.replacePhotoConfirmTitle, style: AppTypography.captureTitle),
+        const SizedBox(height: 8),
+        Text(l10n.replacePhotoConfirmBody, style: AppTypography.body),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: saving ? null : onRetake,
+                child: Text(l10n.captureRetake),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              flex: 2,
+              child: ElevatedButton(
+                onPressed: onSave,
+                child: Text(
+                  saving ? l10n.savingMemory : l10n.replacePhotoUsePhoto,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _PermissionDeniedView extends StatelessWidget {
+  const _PermissionDeniedView({
+    required this.onRetry,
+    required this.onOpenSettings,
+  });
+
+  final VoidCallback onRetry;
+  final Future<bool> Function() onOpenSettings;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return _CameraMessageView(
+      title: l10n.cameraPermissionTitle,
+      body: l10n.cameraPermissionDenied,
+      actionLabel: l10n.cameraPermissionRetry,
+      onAction: onRetry,
+      secondaryLabel: l10n.cameraPermissionOpenSettings,
+      onSecondary: () => onOpenSettings(),
+    );
+  }
+}
+
+class _CameraMessageView extends StatelessWidget {
+  const _CameraMessageView({
+    required this.title,
+    required this.body,
+    required this.actionLabel,
+    required this.onAction,
+    this.secondaryLabel,
+    this.onSecondary,
+  });
+
+  final String title;
+  final String body;
+  final String actionLabel;
+  final VoidCallback onAction;
+  final String? secondaryLabel;
+  final VoidCallback? onSecondary;
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: const Color(0xFF1A221E),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.photo_camera_outlined,
+              size: 48,
+              color: Colors.white70,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                fontSize: 17,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              body,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.white70, height: 1.4),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(onPressed: onAction, child: Text(actionLabel)),
+            if (secondaryLabel != null && onSecondary != null) ...[
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: onSecondary,
+                child: Text(
+                  secondaryLabel!,
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class CapturePreviewFallback extends StatelessWidget {
+  const CapturePreviewFallback({
+    super.key,
+    this.captured = false,
+    this.label,
+    this.onShutter,
+  });
+
+  final bool captured;
+  final String? label;
+  final VoidCallback? onShutter;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: captured
+                  ? const [
+                      AppColors.capturePreviewStart,
+                      AppColors.capturePreviewMid,
+                      AppColors.capturePreviewEnd,
+                    ]
+                  : const [
+                      Color(0xFF1A221E),
+                      Color(0xFF3A4740),
+                      Color(0xFF6B7568),
+                    ],
+              stops: const [0.0, 0.55, 1.0],
+            ),
+          ),
+          child: captured
+              ? null
+              : Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.photo_camera_outlined,
+                        size: 48,
+                        color: Colors.white.withValues(alpha: 0.75),
+                      ),
+                      if (label != null) ...[
+                        const SizedBox(height: 12),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Text(
+                            label!,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.85),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+        ),
+        if (!captured && onShutter != null)
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 28),
+              child: _ShutterButton(onPressed: onShutter!),
+            ),
+          ),
+      ],
     );
   }
 }
