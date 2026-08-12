@@ -1051,15 +1051,11 @@ class AppState extends ChangeNotifier {
   PurchaseService get purchaseService => _purchase;
   BackupService get backupService => _backup;
 
-  /// Creates encrypted backup bytes (caller shares/saves the file).
+  /// Creates encrypted backup bytes only. Does **not** update Last Backup or
+  /// emit success — that happens after the user saves via [markBackupSaved].
   Future<Uint8List?> exportBackupBytes(String password) async {
     try {
-      final bytes = await _backup.createBackupBytes(password);
-      _settings = _settings.copyWith(lastBackupAt: DateTime.now());
-      await _persistSettings();
-      _emitSuccess();
-      notifyListeners();
-      return bytes;
+      return await _backup.createBackupBytes(password);
     } on BackupException catch (e) {
       _snackMessage = switch (e.reason) {
         BackupFailureReason.wrongPassword => 'snackBackupWrongPassword',
@@ -1075,6 +1071,20 @@ class AppState extends ChangeNotifier {
       notifyListeners();
       return null;
     }
+  }
+
+  /// Call only after the backup file was written to the user-chosen location.
+  Future<void> markBackupSaved() async {
+    _settings = _settings.copyWith(lastBackupAt: DateTime.now());
+    await _persistSettings();
+    _emitSuccess();
+    notifyListeners();
+  }
+
+  /// Persistable error when the system save picker fails (not user cancel).
+  void reportBackupSaveFailed() {
+    _snackMessage = 'snackBackupSaveFailed';
+    notifyListeners();
   }
 
   /// Restores from an encrypted backup file. Does not update Last Backup.

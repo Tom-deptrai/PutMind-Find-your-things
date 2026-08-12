@@ -66,7 +66,7 @@
   "languagePickerTitle": "Language",
   "autoLockPickerTitle": "Auto-lock",
   "backupSheetTitle": "Backup & Restore",
-  "backupSheetBody": "Create an encrypted backup file you can save anywhere, or restore from a previous backup. The backup password is separate from App Lock PIN.",
+  "backupSheetBody": "Create an encrypted backup and choose where to save it, or restore from a previous backup. The backup password is separate from App Lock PIN.",
   "createBackup": "Create Backup",
   "restoreBackup": "Restore Backup",
   "backupPasswordCreateTitle": "Set backup password",
@@ -94,9 +94,9 @@
   "snackPurchaseAlreadyOwned": "Lifetime already purchased.",
   "snackStoreUnavailable": "Store is unavailable right now.",
   "privacyDialogTitle": "Privacy",
-  "privacyDialogBody": "Your memories stay yours.\n\nPutMind is local-first: no account, no PutMind cloud database, and no photo upload to PutMind servers in the MVP.\n\nSpeech prefers on-device recognition. Backup files are managed by you.",
+  "privacyDialogBody": "Your memories stay yours.\\n\\nPutMind is local-first: memories, photos, and transcripts stay on this device. There is no PutMind account and no PutMind cloud sync. Camera and microphone are used only for features you choose. Speech uses on-device/platform recognition when available. Daily Reminder uses local notifications. App Lock PIN and biometrics stay on-device. Encrypted backups are files you create and save yourself. In-app purchases are handled by Apple or Google. PutMind does not sell your data.",
   "aboutDialogTitle": "About PutMind",
-  "aboutDialogBody": "PutMind: Find Your Things\nSnap it. Say where. Find it later.\n\nVersion 1.0.0 (Step 1 — UI foundation)",
+  "aboutDialogBody": "PutMind: Find Your Things\\nSnap it. Say where. Find it later.",
   "close": "Close",
   "turnOnAppLockDialogTitle": "Turn on App Lock?",
   "turnOnAppLockDialogBody": "Biometric unlock with PIN fallback will protect your memories on this device.\n\nPutMind has no account/backend, so a forgotten PIN cannot be reset by email. If biometric still works, unlock → Settings → change PIN.",
@@ -178,5 +178,18 @@
   "savingMemory": "Saving…",
   "photoReplaced": "Photo replaced",
   "saveMemoryFailed": "Couldn’t save this memory. Please try again.",
-  "replacePhotoFailed": "Couldn’t replace this photo. Please try again."
+  "replacePhotoFailed": "Couldn’t replace this photo. Please try again.",
+  "viewPrivacyPolicy": "View Privacy Policy",
+  "snackBackupSaveFailed": "Could not save the backup file. Try again.",
+  "aboutVersionLabel": "Version {version} ({buildNumber})",
+  "@aboutVersionLabel": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      },
+      "buildNumber": {
+        "type": "String"
+      }
+    }
+  }
 }

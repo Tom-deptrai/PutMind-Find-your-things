@@ -159,7 +159,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get backupSheetBody =>
-      'Crea una copia de seguridad cifrada para guardarla donde quieras, o restaura una anterior. La contraseña de copia es distinta del PIN de App Lock.';
+      'Crea una copia cifrada y elige dónde guardarla, o restaura una copia anterior. La contraseña de copia es distinta del PIN de bloqueo.';
 
   @override
   String get createBackup => 'Crear copia';
@@ -250,14 +250,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get privacyDialogBody =>
-      'Tus memorias siguen siendo tuyas.\n\nPutMind es local-first: sin cuenta, sin base de datos en la nube de PutMind y sin subir fotos a servidores de PutMind en el MVP.\n\nEl reconocimiento de voz prefiere funcionar en el dispositivo. Los archivos de copia los gestionas tú.';
+      'Tus memorias siguen siendo tuyas.\\n\\nPutMind es local-first: memorias, fotos y transcripciones se quedan en este dispositivo. No hay cuenta PutMind ni sincronización en la nube de PutMind. Cámara y micrófono solo para funciones que eliges. El reconocimiento de voz usa capacidades del dispositivo/plataforma. El recordatorio diario usa notificaciones locales. PIN y biometría del bloqueo permanecen en el dispositivo. Las copias cifradas son archivos que creas y guardas tú. Las compras in-app las gestionan Apple o Google. PutMind no vende tus datos.';
 
   @override
   String get aboutDialogTitle => 'Acerca de PutMind';
 
   @override
   String get aboutDialogBody =>
-      'PutMind: Find Your Things\nSnap it. Say where. Find it later.\n\nVersion 1.0.0 (Step 1 — UI foundation)';
+      'PutMind: Find Your Things\\nSnap it. Say where. Find it later.';
 
   @override
   String get close => 'Cerrar';
@@ -531,4 +531,16 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get replacePhotoFailed =>
       'No se pudo reemplazar esta foto. Inténtalo de nuevo.';
+
+  @override
+  String get viewPrivacyPolicy => 'Ver Política de privacidad';
+
+  @override
+  String get snackBackupSaveFailed =>
+      'No se pudo guardar el archivo de copia. Inténtalo de nuevo.';
+
+  @override
+  String aboutVersionLabel(String version, String buildNumber) {
+    return 'Versión $version ($buildNumber)';
+  }
 }

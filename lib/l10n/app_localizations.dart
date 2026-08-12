@@ -395,7 +395,7 @@ abstract class AppLocalizations {
   /// No description provided for @backupSheetBody.
   ///
   /// In en, this message translates to:
-  /// **'Create an encrypted backup file you can save anywhere, or restore from a previous backup. The backup password is separate from App Lock PIN.'**
+  /// **'Create an encrypted backup and choose where to save it, or restore from a previous backup. The backup password is separate from App Lock PIN.'**
   String get backupSheetBody;
 
   /// No description provided for @createBackup.
@@ -563,7 +563,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyDialogBody.
   ///
   /// In en, this message translates to:
-  /// **'Your memories stay yours.\n\nPutMind is local-first: no account, no PutMind cloud database, and no photo upload to PutMind servers in the MVP.\n\nSpeech prefers on-device recognition. Backup files are managed by you.'**
+  /// **'Your memories stay yours.\\n\\nPutMind is local-first: memories, photos, and transcripts stay on this device. There is no PutMind account and no PutMind cloud sync. Camera and microphone are used only for features you choose. Speech uses on-device/platform recognition when available. Daily Reminder uses local notifications. App Lock PIN and biometrics stay on-device. Encrypted backups are files you create and save yourself. In-app purchases are handled by Apple or Google. PutMind does not sell your data.'**
   String get privacyDialogBody;
 
   /// No description provided for @aboutDialogTitle.
@@ -575,7 +575,7 @@ abstract class AppLocalizations {
   /// No description provided for @aboutDialogBody.
   ///
   /// In en, this message translates to:
-  /// **'PutMind: Find Your Things\nSnap it. Say where. Find it later.\n\nVersion 1.0.0 (Step 1 — UI foundation)'**
+  /// **'PutMind: Find Your Things\\nSnap it. Say where. Find it later.'**
   String get aboutDialogBody;
 
   /// No description provided for @close.
@@ -1069,6 +1069,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn’t replace this photo. Please try again.'**
   String get replacePhotoFailed;
+
+  /// No description provided for @viewPrivacyPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'View Privacy Policy'**
+  String get viewPrivacyPolicy;
+
+  /// No description provided for @snackBackupSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the backup file. Try again.'**
+  String get snackBackupSaveFailed;
+
+  /// No description provided for @aboutVersionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version} ({buildNumber})'**
+  String aboutVersionLabel(String version, String buildNumber);
 }
 
 class _AppLocalizationsDelegate

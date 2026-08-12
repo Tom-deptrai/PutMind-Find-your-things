@@ -46,13 +46,13 @@
   "languagePickerTitle": "Langue",
   "autoLockPickerTitle": "Verrouillage automatique",
   "backupSheetTitle": "Sauvegarde & restauration",
-  "backupSheetBody": "Créez une sauvegarde chiffrée à enregistrer où vous voulez, ou restaurez une sauvegarde. Le mot de passe de sauvegarde est distinct du code PIN App Lock.",
+  "backupSheetBody": "Crée une sauvegarde chiffrée et choisis où l’enregistrer, ou restaure une sauvegarde précédente. Le mot de passe de sauvegarde est distinct du code PIN de verrouillage.",
   "createBackup": "Créer une sauvegarde",
   "restoreBackup": "Restaurer la sauvegarde",
   "privacyDialogTitle": "Confidentialité",
-  "privacyDialogBody": "Tes mémoires restent les tiennes.\n\nPutMind est local-first : pas de compte, pas de base de données cloud PutMind, et pas d’envoi de photos vers les serveurs PutMind dans le MVP.\n\nLa reconnaissance audio privilégie l’exécution sur l’appareil. Les fichiers de sauvegarde sont gérés par toi.",
+  "privacyDialogBody": "Tes mémoires restent les tiennes.\\n\\nPutMind est local-first : mémoires, photos et transcriptions restent sur cet appareil. Pas de compte PutMind ni de sync cloud PutMind. Caméra et micro uniquement pour les fonctions que tu choisis. La reconnaissance vocale utilise les capacités appareil/plateforme. Le rappel quotidien utilise des notifications locales. PIN et biométrie restent sur l’appareil. Les sauvegardes chiffrées sont des fichiers que tu crées et enregistres. Les achats in-app sont gérés par Apple ou Google. PutMind ne vend pas tes données.",
   "aboutDialogTitle": "À propos de PutMind",
-  "aboutDialogBody": "PutMind: Find Your Things\nSnap it. Say where. Find it later.\n\nVersion 1.0.0 (Step 1 — UI foundation)",
+  "aboutDialogBody": "PutMind: Find Your Things\\nSnap it. Say where. Find it later.",
   "close": "Fermer",
   "turnOnAppLockDialogTitle": "Activer le verrouillage de l’app ?",
   "turnOnAppLockDialogBody": "Le déverrouillage biométrique avec secours par PIN protégera tes mémoires sur cet appareil.\n\nPutMind n’a pas de compte/backend : un PIN oublié ne peut pas être réinitialisé par email. Si la biométrie fonctionne encore : déverrouiller → Paramètres → changer le PIN.",
@@ -158,5 +158,8 @@
   "snackPurchaseCancelled": "Achat annulé.",
   "snackPurchaseFailed": "Échec de l’achat. Réessayez.",
   "snackPurchaseAlreadyOwned": "Lifetime déjà acheté.",
-  "snackStoreUnavailable": "Le magasin est indisponible pour le moment."
+  "snackStoreUnavailable": "Le magasin est indisponible pour le moment.",
+  "viewPrivacyPolicy": "Voir la politique de confidentialité",
+  "snackBackupSaveFailed": "Impossible d’enregistrer le fichier de sauvegarde. Réessaie.",
+  "aboutVersionLabel": "Version {version} ({buildNumber})"
 }

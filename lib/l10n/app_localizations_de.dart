@@ -158,7 +158,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get backupSheetBody =>
-      'Erstellen Sie eine verschlüsselte Backup-Datei oder stellen Sie ein Backup wieder her. Das Backup-Passwort ist getrennt vom App-Lock-PIN.';
+      'Erstelle ein verschlüsseltes Backup und wähle den Speicherort, oder stelle ein früheres Backup wieder her. Das Backup-Passwort ist getrennt von der App-Lock-PIN.';
 
   @override
   String get createBackup => 'Backup erstellen';
@@ -250,14 +250,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get privacyDialogBody =>
-      'Deine Erinnerungen bleiben deine.\n\nPutMind ist local-first: kein Konto, keine PutMind-Cloud-Datenbank und im MVP kein Foto-Upload an PutMind-Server.\n\nSpracherkennung bevorzugt auf dem Gerät. Backup-Dateien verwaltest du selbst.';
+      'Deine Erinnerungen bleiben deine.\\n\\nPutMind ist local-first: Erinnerungen, Fotos und Transkripte bleiben auf diesem Gerät. Es gibt kein PutMind-Konto und keine PutMind-Cloud-Sync. Kamera und Mikrofon werden nur für Funktionen genutzt, die du wählst. Spracherkennung nutzt geräte-/plattformseitige Fähigkeiten. Die tägliche Erinnerung nutzt lokale Benachrichtigungen. App-Lock-PIN und Biometrie bleiben auf dem Gerät. Verschlüsselte Backups sind Dateien, die du selbst erstellst und speicherst. In-App-Käufe werden von Apple oder Google abgewickelt. PutMind verkauft deine Daten nicht.';
 
   @override
   String get aboutDialogTitle => 'Über PutMind';
 
   @override
   String get aboutDialogBody =>
-      'PutMind: Find Your Things\nSnap it. Say where. Find it later.\n\nVersion 1.0.0 (Step 1 — UI foundation)';
+      'PutMind: Find Your Things\\nSnap it. Say where. Find it later.';
 
   @override
   String get close => 'Schließen';
@@ -531,4 +531,16 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get replacePhotoFailed =>
       'Foto konnte nicht ersetzt werden. Bitte erneut versuchen.';
+
+  @override
+  String get viewPrivacyPolicy => 'Datenschutzerklärung anzeigen';
+
+  @override
+  String get snackBackupSaveFailed =>
+      'Backup-Datei konnte nicht gespeichert werden. Bitte erneut versuchen.';
+
+  @override
+  String aboutVersionLabel(String version, String buildNumber) {
+    return 'Version $version ($buildNumber)';
+  }
 }

@@ -46,13 +46,13 @@
   "languagePickerTitle": "Idioma",
   "autoLockPickerTitle": "Auto-bloqueo",
   "backupSheetTitle": "Copia de seguridad y restauración",
-  "backupSheetBody": "Crea una copia de seguridad cifrada para guardarla donde quieras, o restaura una anterior. La contraseña de copia es distinta del PIN de App Lock.",
+  "backupSheetBody": "Crea una copia cifrada y elige dónde guardarla, o restaura una copia anterior. La contraseña de copia es distinta del PIN de bloqueo.",
   "createBackup": "Crear copia",
   "restoreBackup": "Restaurar copia",
   "privacyDialogTitle": "Privacidad",
-  "privacyDialogBody": "Tus memorias siguen siendo tuyas.\n\nPutMind es local-first: sin cuenta, sin base de datos en la nube de PutMind y sin subir fotos a servidores de PutMind en el MVP.\n\nEl reconocimiento de voz prefiere funcionar en el dispositivo. Los archivos de copia los gestionas tú.",
+  "privacyDialogBody": "Tus memorias siguen siendo tuyas.\\n\\nPutMind es local-first: memorias, fotos y transcripciones se quedan en este dispositivo. No hay cuenta PutMind ni sincronización en la nube de PutMind. Cámara y micrófono solo para funciones que eliges. El reconocimiento de voz usa capacidades del dispositivo/plataforma. El recordatorio diario usa notificaciones locales. PIN y biometría del bloqueo permanecen en el dispositivo. Las copias cifradas son archivos que creas y guardas tú. Las compras in-app las gestionan Apple o Google. PutMind no vende tus datos.",
   "aboutDialogTitle": "Acerca de PutMind",
-  "aboutDialogBody": "PutMind: Find Your Things\nSnap it. Say where. Find it later.\n\nVersion 1.0.0 (Step 1 — UI foundation)",
+  "aboutDialogBody": "PutMind: Find Your Things\\nSnap it. Say where. Find it later.",
   "close": "Cerrar",
   "turnOnAppLockDialogTitle": "¿Activar bloqueo de la app?",
   "turnOnAppLockDialogBody": "Desbloqueo biométrico con PIN alternativo protegerá tus memorias en este dispositivo.\n\nPutMind no tiene cuenta/backend: si olvidas el PIN, no se puede restablecer por email. Si la biometría sigue funcionando: desbloquea → Ajustes → cambia el PIN.",
@@ -158,5 +158,8 @@
   "snackPurchaseCancelled": "Compra cancelada.",
   "snackPurchaseFailed": "Error en la compra. Inténtalo de nuevo.",
   "snackPurchaseAlreadyOwned": "Lifetime ya comprado.",
-  "snackStoreUnavailable": "La tienda no está disponible ahora."
+  "snackStoreUnavailable": "La tienda no está disponible ahora.",
+  "viewPrivacyPolicy": "Ver Política de privacidad",
+  "snackBackupSaveFailed": "No se pudo guardar el archivo de copia. Inténtalo de nuevo.",
+  "aboutVersionLabel": "Versión {version} ({buildNumber})"
 }

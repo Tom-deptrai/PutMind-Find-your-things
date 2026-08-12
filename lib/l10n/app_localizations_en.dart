@@ -156,7 +156,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get backupSheetBody =>
-      'Create an encrypted backup file you can save anywhere, or restore from a previous backup. The backup password is separate from App Lock PIN.';
+      'Create an encrypted backup and choose where to save it, or restore from a previous backup. The backup password is separate from App Lock PIN.';
 
   @override
   String get createBackup => 'Create Backup';
@@ -246,14 +246,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privacyDialogBody =>
-      'Your memories stay yours.\n\nPutMind is local-first: no account, no PutMind cloud database, and no photo upload to PutMind servers in the MVP.\n\nSpeech prefers on-device recognition. Backup files are managed by you.';
+      'Your memories stay yours.\\n\\nPutMind is local-first: memories, photos, and transcripts stay on this device. There is no PutMind account and no PutMind cloud sync. Camera and microphone are used only for features you choose. Speech uses on-device/platform recognition when available. Daily Reminder uses local notifications. App Lock PIN and biometrics stay on-device. Encrypted backups are files you create and save yourself. In-app purchases are handled by Apple or Google. PutMind does not sell your data.';
 
   @override
   String get aboutDialogTitle => 'About PutMind';
 
   @override
   String get aboutDialogBody =>
-      'PutMind: Find Your Things\nSnap it. Say where. Find it later.\n\nVersion 1.0.0 (Step 1 — UI foundation)';
+      'PutMind: Find Your Things\\nSnap it. Say where. Find it later.';
 
   @override
   String get close => 'Close';
@@ -525,4 +525,16 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get replacePhotoFailed =>
       'Couldn’t replace this photo. Please try again.';
+
+  @override
+  String get viewPrivacyPolicy => 'View Privacy Policy';
+
+  @override
+  String get snackBackupSaveFailed =>
+      'Could not save the backup file. Try again.';
+
+  @override
+  String aboutVersionLabel(String version, String buildNumber) {
+    return 'Version $version ($buildNumber)';
+  }
 }

@@ -46,13 +46,13 @@
   "languagePickerTitle": "Sprache",
   "autoLockPickerTitle": "Automatische Sperre",
   "backupSheetTitle": "Backup & Wiederherstellen",
-  "backupSheetBody": "Erstellen Sie eine verschlüsselte Backup-Datei oder stellen Sie ein Backup wieder her. Das Backup-Passwort ist getrennt vom App-Lock-PIN.",
+  "backupSheetBody": "Erstelle ein verschlüsseltes Backup und wähle den Speicherort, oder stelle ein früheres Backup wieder her. Das Backup-Passwort ist getrennt von der App-Lock-PIN.",
   "createBackup": "Backup erstellen",
   "restoreBackup": "Backup wiederherstellen",
   "privacyDialogTitle": "Datenschutz",
-  "privacyDialogBody": "Deine Erinnerungen bleiben deine.\n\nPutMind ist local-first: kein Konto, keine PutMind-Cloud-Datenbank und im MVP kein Foto-Upload an PutMind-Server.\n\nSpracherkennung bevorzugt auf dem Gerät. Backup-Dateien verwaltest du selbst.",
+  "privacyDialogBody": "Deine Erinnerungen bleiben deine.\\n\\nPutMind ist local-first: Erinnerungen, Fotos und Transkripte bleiben auf diesem Gerät. Es gibt kein PutMind-Konto und keine PutMind-Cloud-Sync. Kamera und Mikrofon werden nur für Funktionen genutzt, die du wählst. Spracherkennung nutzt geräte-/plattformseitige Fähigkeiten. Die tägliche Erinnerung nutzt lokale Benachrichtigungen. App-Lock-PIN und Biometrie bleiben auf dem Gerät. Verschlüsselte Backups sind Dateien, die du selbst erstellst und speicherst. In-App-Käufe werden von Apple oder Google abgewickelt. PutMind verkauft deine Daten nicht.",
   "aboutDialogTitle": "Über PutMind",
-  "aboutDialogBody": "PutMind: Find Your Things\nSnap it. Say where. Find it later.\n\nVersion 1.0.0 (Step 1 — UI foundation)",
+  "aboutDialogBody": "PutMind: Find Your Things\\nSnap it. Say where. Find it later.",
   "close": "Schließen",
   "turnOnAppLockDialogTitle": "App-Sperre einschalten?",
   "turnOnAppLockDialogBody": "Biometrisches Entsperren mit PIN-Backup schützt deine Erinnerungen auf diesem Gerät.\n\nPutMind hat kein Konto/Backend, daher kann eine vergessene PIN nicht per E-Mail zurückgesetzt werden. Wenn Biometrie noch funktioniert: Entsperren → Einstellungen → PIN ändern.",
@@ -158,5 +158,8 @@
   "snackPurchaseCancelled": "Kauf abgebrochen.",
   "snackPurchaseFailed": "Kauf fehlgeschlagen. Bitte erneut versuchen.",
   "snackPurchaseAlreadyOwned": "Lifetime bereits gekauft.",
-  "snackStoreUnavailable": "Store derzeit nicht verfügbar."
+  "snackStoreUnavailable": "Store derzeit nicht verfügbar.",
+  "viewPrivacyPolicy": "Datenschutzerklärung anzeigen",
+  "snackBackupSaveFailed": "Backup-Datei konnte nicht gespeichert werden. Bitte erneut versuchen.",
+  "aboutVersionLabel": "Version {version} ({buildNumber})"
 }

@@ -1,4 +1,4 @@
-name: Deploy PutMind prototype to GitHub Pages
+name: Deploy PutMind site to GitHub Pages
 
 on:
   push:
@@ -26,7 +26,8 @@ jobs:
       - name: Upload site
         uses: actions/upload-pages-artifact@v4
         with:
-          path: .
+          # Static legal/marketing pages only — not the Flutter web build.
+          path: site
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4

@@ -157,7 +157,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get backupSheetBody =>
-      'Crie um backup criptografado para salvar onde quiser, ou restaure um backup. A senha do backup é separada do PIN do App Lock.';
+      'Crie um backup criptografado e escolha onde salvar, ou restaure um backup anterior. A senha do backup é separada do PIN do bloqueio.';
 
   @override
   String get createBackup => 'Criar backup';
@@ -247,14 +247,14 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get privacyDialogBody =>
-      'Suas memórias continuam sendo suas.\n\nO PutMind é local-first: sem conta, sem banco de dados em nuvem do PutMind e sem upload de fotos para servidores do PutMind no MVP.\n\nO reconhecimento de voz prefere ser executado no dispositivo. Arquivos de backup são gerenciados por você.';
+      'Suas memórias continuam sendo suas.\\n\\nO PutMind é local-first: memórias, fotos e transcrições ficam neste dispositivo. Não há conta PutMind nem sincronização na nuvem do PutMind. Câmera e microfone só para funções que você escolher. O reconhecimento de voz usa recursos do dispositivo/plataforma. O lembrete diário usa notificações locais. PIN e biometria ficam no dispositivo. Backups criptografados são arquivos que você cria e salva. Compras no app são processadas pela Apple ou Google. O PutMind não vende seus dados.';
 
   @override
   String get aboutDialogTitle => 'Sobre o PutMind';
 
   @override
   String get aboutDialogBody =>
-      'PutMind: Find Your Things\nSnap it. Say where. Find it later.\n\nVersion 1.0.0 (Step 1 — UI foundation)';
+      'PutMind: Find Your Things\\nSnap it. Say where. Find it later.';
 
   @override
   String get close => 'Fechar';
@@ -527,6 +527,18 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get replacePhotoFailed =>
       'Não foi possível substituir esta foto. Tente novamente.';
+
+  @override
+  String get viewPrivacyPolicy => 'Ver Política de Privacidade';
+
+  @override
+  String get snackBackupSaveFailed =>
+      'Não foi possível salvar o arquivo de backup. Tente novamente.';
+
+  @override
+  String aboutVersionLabel(String version, String buildNumber) {
+    return 'Versão $version ($buildNumber)';
+  }
 }
 
 /// The translations for Portuguese, as used in Brazil (`pt_BR`).
@@ -682,7 +694,7 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
 
   @override
   String get backupSheetBody =>
-      'Crie um backup criptografado para salvar onde quiser, ou restaure um backup. A senha do backup é separada do PIN do App Lock.';
+      'Crie um backup criptografado e escolha onde salvar, ou restaure um backup anterior. A senha do backup é separada do PIN do bloqueio.';
 
   @override
   String get createBackup => 'Criar backup';
@@ -772,14 +784,14 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
 
   @override
   String get privacyDialogBody =>
-      'Suas memórias continuam sendo suas.\n\nO PutMind é local-first: sem conta, sem banco de dados em nuvem do PutMind e sem upload de fotos para servidores do PutMind no MVP.\n\nO reconhecimento de voz prefere ser executado no dispositivo. Arquivos de backup são gerenciados por você.';
+      'Suas memórias continuam sendo suas.\\n\\nO PutMind é local-first: memórias, fotos e transcrições ficam neste dispositivo. Não há conta PutMind nem sincronização na nuvem do PutMind. Câmera e microfone só para funções que você escolher. O reconhecimento de voz usa recursos do dispositivo/plataforma. O lembrete diário usa notificações locais. PIN e biometria ficam no dispositivo. Backups criptografados são arquivos que você cria e salva. Compras no app são processadas pela Apple ou Google. O PutMind não vende seus dados.';
 
   @override
   String get aboutDialogTitle => 'Sobre o PutMind';
 
   @override
   String get aboutDialogBody =>
-      'PutMind: Find Your Things\nSnap it. Say where. Find it later.\n\nVersion 1.0.0 (Step 1 — UI foundation)';
+      'PutMind: Find Your Things\\nSnap it. Say where. Find it later.';
 
   @override
   String get close => 'Fechar';
@@ -1052,4 +1064,16 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   @override
   String get replacePhotoFailed =>
       'Não foi possível substituir esta foto. Tente novamente.';
+
+  @override
+  String get viewPrivacyPolicy => 'Ver Política de Privacidade';
+
+  @override
+  String get snackBackupSaveFailed =>
+      'Não foi possível salvar o arquivo de backup. Tente novamente.';
+
+  @override
+  String aboutVersionLabel(String version, String buildNumber) {
+    return 'Versão $version ($buildNumber)';
+  }
 }

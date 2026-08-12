@@ -46,13 +46,13 @@
   "languagePickerTitle": "Lingua",
   "autoLockPickerTitle": "Blocco automatico",
   "backupSheetTitle": "Backup e ripristino",
-  "backupSheetBody": "Crea un backup crittografato da salvare dove preferisci, o ripristina un backup. La password del backup è separata dal PIN App Lock.",
+  "backupSheetBody": "Crea un backup crittografato e scegli dove salvarlo, oppure ripristina un backup precedente. La password del backup è distinta dal PIN di blocco.",
   "createBackup": "Crea backup",
   "restoreBackup": "Ripristina backup",
   "privacyDialogTitle": "Privacy",
-  "privacyDialogBody": "Le tue memorie restano tue.\n\nPutMind è local-first: niente account, niente database cloud PutMind e nessun upload di foto ai server PutMind nel MVP.\n\nIl riconoscimento vocale preferisce il dispositivo. I file di backup li gestisci tu.",
+  "privacyDialogBody": "Le tue memorie restano tue.\\n\\nPutMind è local-first: memorie, foto e trascrizioni restano su questo dispositivo. Nessun account PutMind e nessun sync cloud PutMind. Fotocamera e microfono solo per le funzioni che scegli. Il riconoscimento vocale usa le capacità del dispositivo/piattaforma. Il promemoria giornaliero usa notifiche locali. PIN e biometria restano sul dispositivo. I backup crittografati sono file che crei e salvi tu. Gli acquisti in-app sono gestiti da Apple o Google. PutMind non vende i tuoi dati.",
   "aboutDialogTitle": "Info su PutMind",
-  "aboutDialogBody": "PutMind: Find Your Things\nSnap it. Say where. Find it later.\n\nVersion 1.0.0 (Step 1 — UI foundation)",
+  "aboutDialogBody": "PutMind: Find Your Things\\nSnap it. Say where. Find it later.",
   "close": "Chiudi",
   "turnOnAppLockDialogTitle": "Attivare Blocco app?",
   "turnOnAppLockDialogBody": "Lo sblocco biometrico con fallback PIN proteggerà le tue memorie su questo dispositivo.\n\nPutMind non ha account/backend, quindi un PIN dimenticato non può essere reimpostato via email. Se la biometria funziona ancora: sblocca → Impostazioni → cambia PIN.",
@@ -158,5 +158,8 @@
   "snackPurchaseCancelled": "Acquisto annullato.",
   "snackPurchaseFailed": "Acquisto non riuscito. Riprova.",
   "snackPurchaseAlreadyOwned": "Lifetime già acquistato.",
-  "snackStoreUnavailable": "Lo store non è disponibile al momento."
+  "snackStoreUnavailable": "Lo store non è disponibile al momento.",
+  "viewPrivacyPolicy": "Vedi Informativa sulla privacy",
+  "snackBackupSaveFailed": "Impossibile salvare il file di backup. Riprova.",
+  "aboutVersionLabel": "Versione {version} ({buildNumber})"
 }

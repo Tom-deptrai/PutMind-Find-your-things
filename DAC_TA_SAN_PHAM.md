@@ -644,11 +644,12 @@ Settings chỉ chứa các mục cần thiết:
 
 ### Privacy
 
-- Thông tin privacy
+- Privacy summary trong app
+- View Privacy Policy (public URL)
 
 ### About
 
-- Version
+- Version / build từ package metadata
 - Basic app info
 
 Không thêm Settings thừa ở MVP.
@@ -689,19 +690,27 @@ Nếu người dùng xóa app, dữ liệu local có thể mất. PutMind giải
 - Transcript
 - Metadata cần thiết
 
-thành một file backup, ví dụ:
+thành một file backup mã hóa, tên mặc định:
 
-`PutMindBackup.backup`
+`PutMindBackup_YYYY-MM-DD_HH-mm.backup`
+
+### Create Backup flow
+
+**Settings → Backup & Restore → Create Backup → nhập / xác nhận mật khẩu → system Save / document picker → user chọn vị trí + tên file → lưu.**
+
+- Chỉ khi lưu thành công mới cập nhật **Last Backup** và hiện success check.
+- Nếu user hủy Save picker: không success, không cập nhật Last Backup, không báo lỗi.
+- Không coi Share / temp-only là đích lưu chính thức.
 
 ### Bảo mật
 
-Backup nên được mã hóa.
+Backup được mã hóa (PBKDF2-HMAC-SHA256 + AES-256-GCM).
 
 Không xuất plain ZIP chứa ảnh và dữ liệu nhạy cảm.
 
 ### Nơi lưu
 
-Người dùng tự chọn:
+Người dùng tự chọn qua system document/save picker:
 
 - Bộ nhớ máy
 - Máy tính
@@ -713,9 +722,13 @@ Người dùng tự chọn:
 
 Nếu người dùng chọn cloud, đó là cloud/tài khoản của chính họ; PutMind không vận hành cloud storage và không phải trả phí lưu dữ liệu của họ.
 
+### Privacy
+
+**Settings → Privacy** có tóm tắt trong app và hành động **View Privacy Policy** mở trang public (GitHub Pages). Policy phản ánh đúng hành vi local-first của app.
+
 ### Restore
 
-**Settings → Restore Backup → chọn file → phục hồi dữ liệu**
+**Settings → Backup & Restore → Restore Backup → system file picker → chọn `.backup` → nhập mật khẩu → xác nhận → giải mã / phục hồi**
 
 Dùng khi:
 

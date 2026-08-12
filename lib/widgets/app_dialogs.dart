@@ -196,55 +196,91 @@ class _BackupPasswordDialogState extends State<_BackupPasswordDialog> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return AlertDialog(
-      title: Text(
-        widget.confirm
-            ? l10n.backupPasswordCreateTitle
-            : l10n.backupPasswordEnterTitle,
+    final media = MediaQuery.of(context);
+    final maxHeight = media.size.height - media.viewInsets.bottom - 48;
+
+    // One scrollable surface for title + fields + actions so the soft keyboard
+    // never causes BOTTOM OVERFLOW on small Android screens.
+    return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.dialog),
       ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (widget.confirm) ...[
-            Text(l10n.backupPasswordWarning, style: AppTypography.body),
-            const SizedBox(height: 12),
-          ],
-          TextField(
-            controller: _password,
-            obscureText: true,
-            autofocus: true,
-            decoration: InputDecoration(labelText: l10n.backupPasswordLabel),
-          ),
-          if (widget.confirm) ...[
-            const SizedBox(height: 8),
-            TextField(
-              controller: _confirm,
-              obscureText: true,
-              decoration: InputDecoration(
-                labelText: l10n.backupPasswordConfirmLabel,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: maxHeight.clamp(200.0, 560.0),
+          maxWidth: 400,
+        ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                widget.confirm
+                    ? l10n.backupPasswordCreateTitle
+                    : l10n.backupPasswordEnterTitle,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.ink,
+                ),
               ),
-            ),
-          ],
-          if (_error != null) ...[
-            const SizedBox(height: 8),
-            Text(
-              _error!,
-              style: AppTypography.body.copyWith(color: AppColors.danger),
-            ),
-          ],
-        ],
+              const SizedBox(height: 12),
+              if (widget.confirm) ...[
+                Text(l10n.backupPasswordWarning, style: AppTypography.body),
+                const SizedBox(height: 12),
+              ],
+              TextField(
+                controller: _password,
+                obscureText: true,
+                autofocus: true,
+                decoration: InputDecoration(
+                  labelText: l10n.backupPasswordLabel,
+                ),
+              ),
+              if (widget.confirm) ...[
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _confirm,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    labelText: l10n.backupPasswordConfirmLabel,
+                  ),
+                ),
+              ],
+              if (_error != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  _error!,
+                  style: AppTypography.body.copyWith(color: AppColors.danger),
+                ),
+              ],
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text(l10n.cancel),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: _submit,
+                      child: Text(
+                        widget.confirm ? l10n.createBackup : l10n.restoreBackup,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(l10n.cancel),
-        ),
-        ElevatedButton(
-          onPressed: _submit,
-          child: Text(widget.confirm ? l10n.createBackup : l10n.restoreBackup),
-        ),
-      ],
     );
   }
 }

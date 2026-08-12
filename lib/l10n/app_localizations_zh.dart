@@ -151,8 +151,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get backupSheetTitle => '備份與還原';
 
   @override
-  String get backupSheetBody =>
-      'Create an encrypted backup file you can save anywhere, or restore from a previous backup. The backup password is separate from App Lock PIN.';
+  String get backupSheetBody => '创建加密备份并选择保存位置，或从之前的备份还原。备份密码与应用锁定 PIN 不同。';
 
   @override
   String get createBackup => '建立備份';
@@ -242,14 +241,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get privacyDialogBody =>
-      '你的記憶仍然屬於你。\n\nPutMind 採用本機優先：沒有帳號、沒有 PutMind 雲端資料庫，且 MVP 不會把照片上傳到 PutMind 伺服器。\n\n語音辨識優先使用裝置上的能力。備份檔案由你管理。';
+      '你的记忆仍然属于你。\\n\\nPutMind 采用本机优先：记忆、照片和文字记录保存在本设备。没有 PutMind 账号，也没有 PutMind 云同步。相机和麦克风仅在你选择的功能中使用。语音识别使用设备/平台能力。每日提醒使用本地通知。应用锁定 PIN 与生物识别留在本机。加密备份是你自行创建并保存的文件。应用内购买由 Apple 或 Google 处理。PutMind 不会出售你的数据。';
 
   @override
   String get aboutDialogTitle => '關於 PutMind';
 
   @override
   String get aboutDialogBody =>
-      'PutMind: Find Your Things\nSnap it. Say where. Find it later.\n\nVersion 1.0.0 (Step 1 — UI foundation)';
+      'PutMind: Find Your Things\\nSnap it. Say where. Find it later.';
 
   @override
   String get close => '關閉';
@@ -510,6 +509,17 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get replacePhotoFailed => '無法替換此照片。請再試一次。';
+
+  @override
+  String get viewPrivacyPolicy => '查看隐私政策';
+
+  @override
+  String get snackBackupSaveFailed => '无法保存备份文件。请重试。';
+
+  @override
+  String aboutVersionLabel(String version, String buildNumber) {
+    return '版本 $version ($buildNumber)';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -659,8 +669,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get backupSheetTitle => '備份與還原';
 
   @override
-  String get backupSheetBody =>
-      '建立加密備份檔並自行保存，或從先前備份還原。備份密碼與 App Lock PIN 完全分開。';
+  String get backupSheetBody => '建立加密備份並選擇儲存位置，或從先前的備份還原。備份密碼與 App 鎖定 PIN 不同。';
 
   @override
   String get createBackup => '建立備份';
@@ -745,14 +754,14 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get privacyDialogBody =>
-      '你的記憶仍然屬於你。\n\nPutMind 採用本機優先：沒有帳號、沒有 PutMind 雲端資料庫，且 MVP 不會把照片上傳到 PutMind 伺服器。\n\n語音辨識優先使用裝置上的能力。備份檔案由你管理。';
+      '你的記憶仍然屬於你。\\n\\nPutMind 採用本機優先：記憶、照片與文字記錄保存在此裝置。沒有 PutMind 帳號，也沒有 PutMind 雲端同步。相機與麥克風僅在你選擇的功能中使用。語音辨識使用裝置/平台能力。每日提醒使用本機通知。App 鎖定 PIN 與生物辨識留在本機。加密備份是你自行建立並儲存的檔案。App 內購買由 Apple 或 Google 處理。PutMind 不會出售你的資料。';
 
   @override
   String get aboutDialogTitle => '關於 PutMind';
 
   @override
   String get aboutDialogBody =>
-      'PutMind: Find Your Things\nSnap it. Say where. Find it later.\n\nVersion 1.0.0 (Step 1 — UI foundation)';
+      'PutMind: Find Your Things\\nSnap it. Say where. Find it later.';
 
   @override
   String get close => '關閉';
@@ -1013,4 +1022,15 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get replacePhotoFailed => '無法替換此照片。請再試一次。';
+
+  @override
+  String get viewPrivacyPolicy => '查看隱私權政策';
+
+  @override
+  String get snackBackupSaveFailed => '無法儲存備份檔案。請再試一次。';
+
+  @override
+  String aboutVersionLabel(String version, String buildNumber) {
+    return '版本 $version ($buildNumber)';
+  }
 }

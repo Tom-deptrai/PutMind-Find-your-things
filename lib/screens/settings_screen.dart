@@ -1,12 +1,11 @@
-import 'dart:io';
-
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../config/app_urls.dart';
 import '../models/settings.dart';
+import '../services/app_package_info.dart';
+import '../services/backup_file_saver.dart';
 import '../services/memory_repository.dart';
 import '../state/app_state.dart';
 import '../theme/app_colors.dart';
@@ -19,9 +18,18 @@ import '../l10n/app_localizations.dart';
 import '../utils/memory_time_format.dart';
 
 class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key, required this.state});
+  const SettingsScreen({
+    super.key,
+    required this.state,
+    this.backupFileSaver = const SystemBackupFileSaver(),
+    this.packageInfoLoader = AppPackageInfo.load,
+    this.privacyUrlLauncher,
+  });
 
   final AppState state;
+  final BackupFileSaver backupFileSaver;
+  final Future<AppPackageInfo> Function() packageInfoLoader;
+  final Future<bool> Function(Uri uri)? privacyUrlLauncher;
 
   Future<void> _pickLanguage(BuildContext context) async {
     final selected = await showModalBottomSheet<AppLanguage>(
@@ -111,7 +119,7 @@ class SettingsScreen extends StatelessWidget {
   }
 
   Future<void> _showBackupSheet(BuildContext context) async {
-    await showModalBottomSheet<void>(
+    final action = await showModalBottomSheet<String>(
       context: context,
       builder: (context) {
         final l10n = AppLocalizations.of(context)!;
@@ -130,18 +138,12 @@ class SettingsScreen extends StatelessWidget {
                 Text(l10n.backupSheetBody, style: AppTypography.body),
                 const SizedBox(height: 16),
                 ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    _createBackup(context);
-                  },
+                  onPressed: () => Navigator.pop(context, 'create'),
                   child: Text(l10n.createBackup),
                 ),
                 const SizedBox(height: 8),
                 OutlinedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    _restoreBackup(context);
-                  },
+                  onPressed: () => Navigator.pop(context, 'restore'),
                   child: Text(l10n.restoreBackup),
                 ),
               ],
@@ -150,6 +152,12 @@ class SettingsScreen extends StatelessWidget {
         );
       },
     );
+    if (!context.mounted || action == null) return;
+    if (action == 'create') {
+      await _createBackup(context);
+    } else if (action == 'restore') {
+      await _restoreBackup(context);
+    }
   }
 
   Future<void> _createBackup(BuildContext context) async {
@@ -162,16 +170,22 @@ class SettingsScreen extends StatelessWidget {
     final bytes = await state.exportBackupBytes(password);
     if (bytes == null || !context.mounted) return;
 
-    final dir = await getTemporaryDirectory();
-    final stamp = DateTime.now().toUtc().toIso8601String().replaceAll(':', '-');
-    final file = File(p.join(dir.path, 'PutMindBackup_$stamp.backup'));
-    await file.writeAsBytes(bytes, flush: true);
-    await SharePlus.instance.share(
-      ShareParams(
-        files: [XFile(file.path, mimeType: 'application/octet-stream')],
-        subject: 'PutMind Backup',
-      ),
-    );
+    final fileName = defaultBackupFileName();
+    String? savedPath;
+    try {
+      savedPath = await backupFileSaver.saveBackup(
+        fileName: fileName,
+        bytes: bytes,
+      );
+    } catch (_) {
+      state.reportBackupSaveFailed();
+      return;
+    }
+
+    // User cancelled the system save picker — silent, no Last Backup update.
+    if (savedPath == null) return;
+
+    await state.markBackupSaved();
   }
 
   Future<void> _restoreBackup(BuildContext context) async {
@@ -197,14 +211,43 @@ class SettingsScreen extends StatelessWidget {
     await state.restoreBackupFromPath(path: path, password: password);
   }
 
+  Future<void> _openPrivacyPolicy() async {
+    final uri = Uri.parse(kPrivacyPolicyUrl);
+    try {
+      final launcher = privacyUrlLauncher;
+      if (launcher != null) {
+        await launcher(uri);
+        return;
+      }
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      // Offline / no browser — in-app summary remains readable; never crash.
+    }
+  }
+
   Future<void> _showPrivacy(BuildContext context) async {
     await showDialog<void>(
       context: context,
       builder: (context) {
         final l10n = AppLocalizations.of(context)!;
         return AlertDialog(
+          scrollable: true,
           title: Text(l10n.privacyDialogTitle),
-          content: Text(l10n.privacyDialogBody, style: AppTypography.body),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(l10n.privacyDialogBody, style: AppTypography.body),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _openPrivacyPolicy();
+                },
+                child: Text(l10n.viewPrivacyPolicy),
+              ),
+            ],
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -217,13 +260,27 @@ class SettingsScreen extends StatelessWidget {
   }
 
   Future<void> _showAbout(BuildContext context) async {
+    final info = await packageInfoLoader();
+    if (!context.mounted) return;
     await showDialog<void>(
       context: context,
       builder: (context) {
         final l10n = AppLocalizations.of(context)!;
         return AlertDialog(
+          scrollable: true,
           title: Text(l10n.aboutDialogTitle),
-          content: Text(l10n.aboutDialogBody, style: AppTypography.body),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l10n.aboutDialogBody, style: AppTypography.body),
+              const SizedBox(height: 12),
+              Text(
+                l10n.aboutVersionLabel(info.version, info.buildNumber),
+                style: AppTypography.meta,
+              ),
+            ],
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -436,16 +493,16 @@ class SettingsScreen extends StatelessWidget {
                   ),
                   SettingsRow(
                     title: l10n.settingsUpgradeLifetimeRowTitle,
-                    trailing: const Text('›'),
-                    onTap: () async {
-                      if (s.isLifetimeUnlocked) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(l10n.lifetimeAlreadyUnlocked)),
-                        );
-                        return;
-                      }
-                      await showPaywallDialog(context: context, state: state);
-                    },
+                    trailing: s.isLifetimeUnlocked
+                        ? Text(
+                            l10n.lifetimeAlreadyUnlocked,
+                            style: AppTypography.meta,
+                          )
+                        : const Text('›'),
+                    onTap: s.isLifetimeUnlocked
+                        ? null
+                        : () =>
+                              showPaywallDialog(context: context, state: state),
                   ),
                   SettingsRow(
                     title: l10n.settingsRestorePurchaseRowTitle,

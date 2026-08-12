@@ -142,6 +142,7 @@ class _PutMindAppState extends State<PutMindApp> with WidgetsBindingObserver {
       'snackBackupCorrupted' => loc.snackBackupCorrupted,
       'snackBackupUnsupported' => loc.snackBackupUnsupported,
       'snackBackupCancelled' => loc.snackBackupCancelled,
+      'snackBackupSaveFailed' => loc.snackBackupSaveFailed,
       'snackLifetimeUnlocked' => loc.snackLifetimeUnlocked,
       'snackPurchaseRestored' => loc.snackPurchaseRestored,
       'snackPurchaseRestoreNone' => loc.snackPurchaseRestoreNone,

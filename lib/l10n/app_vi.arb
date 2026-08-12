@@ -46,13 +46,13 @@
   "languagePickerTitle": "Ngôn ngữ",
   "autoLockPickerTitle": "Tự khóa",
   "backupSheetTitle": "Sao lưu & khôi phục",
-  "backupSheetBody": "Tạo tệp sao lưu mã hóa để lưu ở bất kỳ đâu, hoặc khôi phục từ bản sao lưu trước. Mật khẩu sao lưu tách biệt với mã PIN App Lock.",
+  "backupSheetBody": "Tạo bản sao lưu mã hóa và chọn nơi lưu, hoặc khôi phục từ bản sao lưu trước. Mật khẩu sao lưu khác với PIN khóa app.",
   "createBackup": "Tạo bản sao lưu",
   "restoreBackup": "Khôi phục bản sao lưu",
   "privacyDialogTitle": "Quyền riêng tư",
-  "privacyDialogBody": "Kỷ niệm của bạn vẫn là của bạn.\n\nPutMind hoạt động theo hướng local-first: không có tài khoản, không có cơ sở dữ liệu đám mây của PutMind và không tải ảnh lên máy chủ PutMind ở MVP.\n\nNhận dạng giọng nói ưu tiên chạy trên thiết bị. Tệp sao lưu do bạn quản lý.",
+  "privacyDialogBody": "Kỷ niệm của bạn vẫn là của bạn.\\n\\nPutMind theo hướng local-first: kỷ niệm, ảnh và bản ghi lưu trên thiết bị này. Không có tài khoản PutMind và không đồng bộ đám mây PutMind. Camera và micro chỉ dùng khi bạn chọn. Nhận dạng giọng nói dùng khả năng trên thiết bị/nền tảng. Nhắc hàng ngày dùng thông báo cục bộ. PIN và sinh trắc học khóa app ở trên thiết bị. Sao lưu mã hóa là tệp bạn tự tạo và lưu. Mua trong app do Apple hoặc Google xử lý. PutMind không bán dữ liệu của bạn.",
   "aboutDialogTitle": "Giới thiệu về PutMind",
-  "aboutDialogBody": "PutMind: Find Your Things\nSnap it. Say where. Find it later.\n\nVersion 1.0.0 (Step 1 — UI foundation)",
+  "aboutDialogBody": "PutMind: Find Your Things\\nSnap it. Say where. Find it later.",
   "close": "Đóng",
   "turnOnAppLockDialogTitle": "Bật Khóa ứng dụng?",
   "turnOnAppLockDialogBody": "Mở khóa bằng sinh trắc với tùy chọn PIN sẽ bảo vệ các kỷ niệm trên thiết bị này.\n\nPutMind không có tài khoản/backend, vì vậy PIN bị quên không thể được đặt lại qua email. Nếu sinh trắc vẫn hoạt động: mở khóa → Cài đặt → đổi PIN.",
@@ -158,5 +158,8 @@
   "snackPurchaseCancelled": "Đã hủy mua.",
   "snackPurchaseFailed": "Mua thất bại. Thử lại.",
   "snackPurchaseAlreadyOwned": "Lifetime đã được mua.",
-  "snackStoreUnavailable": "Cửa hàng hiện không khả dụng."
+  "snackStoreUnavailable": "Cửa hàng hiện không khả dụng.",
+  "viewPrivacyPolicy": "Xem Chính sách quyền riêng tư",
+  "snackBackupSaveFailed": "Không lưu được tệp sao lưu. Thử lại.",
+  "aboutVersionLabel": "Phiên bản {version} ({buildNumber})"
 }

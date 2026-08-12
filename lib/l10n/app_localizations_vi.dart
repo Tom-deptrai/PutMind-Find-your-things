@@ -157,7 +157,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get backupSheetBody =>
-      'Tạo tệp sao lưu mã hóa để lưu ở bất kỳ đâu, hoặc khôi phục từ bản sao lưu trước. Mật khẩu sao lưu tách biệt với mã PIN App Lock.';
+      'Tạo bản sao lưu mã hóa và chọn nơi lưu, hoặc khôi phục từ bản sao lưu trước. Mật khẩu sao lưu khác với PIN khóa app.';
 
   @override
   String get createBackup => 'Tạo bản sao lưu';
@@ -246,14 +246,14 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get privacyDialogBody =>
-      'Kỷ niệm của bạn vẫn là của bạn.\n\nPutMind hoạt động theo hướng local-first: không có tài khoản, không có cơ sở dữ liệu đám mây của PutMind và không tải ảnh lên máy chủ PutMind ở MVP.\n\nNhận dạng giọng nói ưu tiên chạy trên thiết bị. Tệp sao lưu do bạn quản lý.';
+      'Kỷ niệm của bạn vẫn là của bạn.\\n\\nPutMind theo hướng local-first: kỷ niệm, ảnh và bản ghi lưu trên thiết bị này. Không có tài khoản PutMind và không đồng bộ đám mây PutMind. Camera và micro chỉ dùng khi bạn chọn. Nhận dạng giọng nói dùng khả năng trên thiết bị/nền tảng. Nhắc hàng ngày dùng thông báo cục bộ. PIN và sinh trắc học khóa app ở trên thiết bị. Sao lưu mã hóa là tệp bạn tự tạo và lưu. Mua trong app do Apple hoặc Google xử lý. PutMind không bán dữ liệu của bạn.';
 
   @override
   String get aboutDialogTitle => 'Giới thiệu về PutMind';
 
   @override
   String get aboutDialogBody =>
-      'PutMind: Find Your Things\nSnap it. Say where. Find it later.\n\nVersion 1.0.0 (Step 1 — UI foundation)';
+      'PutMind: Find Your Things\\nSnap it. Say where. Find it later.';
 
   @override
   String get close => 'Đóng';
@@ -525,4 +525,15 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get replacePhotoFailed => 'Không thay được ảnh. Vui lòng thử lại.';
+
+  @override
+  String get viewPrivacyPolicy => 'Xem Chính sách quyền riêng tư';
+
+  @override
+  String get snackBackupSaveFailed => 'Không lưu được tệp sao lưu. Thử lại.';
+
+  @override
+  String aboutVersionLabel(String version, String buildNumber) {
+    return 'Phiên bản $version ($buildNumber)';
+  }
 }

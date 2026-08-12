@@ -158,7 +158,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get backupSheetBody =>
-      'Crea un backup crittografato da salvare dove preferisci, o ripristina un backup. La password del backup è separata dal PIN App Lock.';
+      'Crea un backup crittografato e scegli dove salvarlo, oppure ripristina un backup precedente. La password del backup è distinta dal PIN di blocco.';
 
   @override
   String get createBackup => 'Crea backup';
@@ -249,14 +249,14 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get privacyDialogBody =>
-      'Le tue memorie restano tue.\n\nPutMind è local-first: niente account, niente database cloud PutMind e nessun upload di foto ai server PutMind nel MVP.\n\nIl riconoscimento vocale preferisce il dispositivo. I file di backup li gestisci tu.';
+      'Le tue memorie restano tue.\\n\\nPutMind è local-first: memorie, foto e trascrizioni restano su questo dispositivo. Nessun account PutMind e nessun sync cloud PutMind. Fotocamera e microfono solo per le funzioni che scegli. Il riconoscimento vocale usa le capacità del dispositivo/piattaforma. Il promemoria giornaliero usa notifiche locali. PIN e biometria restano sul dispositivo. I backup crittografati sono file che crei e salvi tu. Gli acquisti in-app sono gestiti da Apple o Google. PutMind non vende i tuoi dati.';
 
   @override
   String get aboutDialogTitle => 'Info su PutMind';
 
   @override
   String get aboutDialogBody =>
-      'PutMind: Find Your Things\nSnap it. Say where. Find it later.\n\nVersion 1.0.0 (Step 1 — UI foundation)';
+      'PutMind: Find Your Things\\nSnap it. Say where. Find it later.';
 
   @override
   String get close => 'Chiudi';
@@ -529,4 +529,16 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get replacePhotoFailed =>
       'Impossibile sostituire questa foto. Riprova.';
+
+  @override
+  String get viewPrivacyPolicy => 'Vedi Informativa sulla privacy';
+
+  @override
+  String get snackBackupSaveFailed =>
+      'Impossibile salvare il file di backup. Riprova.';
+
+  @override
+  String aboutVersionLabel(String version, String buildNumber) {
+    return 'Versione $version ($buildNumber)';
+  }
 }

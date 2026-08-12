@@ -152,7 +152,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get backupSheetBody =>
-      '暗号化バックアップを作成して保存するか、以前のバックアップから復元します。バックアップパスワードはApp Lock PINとは別です。';
+      '暗号化バックアップを作成して保存場所を選ぶか、以前のバックアップから復元します。バックアップ用パスワードはアプリロックPINとは別です。';
 
   @override
   String get createBackup => 'バックアップ作成';
@@ -238,14 +238,14 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get privacyDialogBody =>
-      'あなたの思い出は、あなたのもののままです。\n\nPutMindはローカルファーストです：アカウントなし、PutMindのクラウドDBなし、そしてMVPではPutMindサーバーへの写真アップロードなし。\n\n音声は可能な限り端末内で認識します。バックアップファイルはあなたが管理します。';
+      'あなたの思い出は、あなたのもののままです。\\n\\nPutMindはローカルファーストです。思い出・写真・文字起こしはこの端末に保存されます。PutMindアカウントやクラウド同期はありません。カメラとマイクは選んだ機能でのみ使います。音声認識は端末/プラットフォームの機能を使います。毎日のリマインダーはローカル通知です。アプリロックのPINと生体認証はこの端末に留まります。暗号化バックアップは自分で作成・保存するファイルです。アプリ内課金はAppleまたはGoogleが処理します。PutMindはデータを販売しません。';
 
   @override
   String get aboutDialogTitle => 'PutMind について';
 
   @override
   String get aboutDialogBody =>
-      'PutMind: Find Your Things\nSnap it. Say where. Find it later.\n\nVersion 1.0.0 (Step 1 — UI foundation)';
+      'PutMind: Find Your Things\\nSnap it. Say where. Find it later.';
 
   @override
   String get close => '閉じる';
@@ -508,4 +508,15 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get replacePhotoFailed => '写真を置き換えできませんでした。もう一度お試しください。';
+
+  @override
+  String get viewPrivacyPolicy => 'プライバシーポリシーを見る';
+
+  @override
+  String get snackBackupSaveFailed => 'バックアップファイルを保存できませんでした。もう一度お試しください。';
+
+  @override
+  String aboutVersionLabel(String version, String buildNumber) {
+    return 'バージョン $version ($buildNumber)';
+  }
 }

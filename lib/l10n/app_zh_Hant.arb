@@ -46,13 +46,13 @@
   "languagePickerTitle": "語言",
   "autoLockPickerTitle": "自動鎖定",
   "backupSheetTitle": "備份與還原",
-  "backupSheetBody": "建立加密備份檔並自行保存，或從先前備份還原。備份密碼與 App Lock PIN 完全分開。",
+  "backupSheetBody": "建立加密備份並選擇儲存位置，或從先前的備份還原。備份密碼與 App 鎖定 PIN 不同。",
   "createBackup": "建立備份",
   "restoreBackup": "還原備份",
   "privacyDialogTitle": "隱私",
-  "privacyDialogBody": "你的記憶仍然屬於你。\n\nPutMind 採用本機優先：沒有帳號、沒有 PutMind 雲端資料庫，且 MVP 不會把照片上傳到 PutMind 伺服器。\n\n語音辨識優先使用裝置上的能力。備份檔案由你管理。",
+  "privacyDialogBody": "你的記憶仍然屬於你。\\n\\nPutMind 採用本機優先：記憶、照片與文字記錄保存在此裝置。沒有 PutMind 帳號，也沒有 PutMind 雲端同步。相機與麥克風僅在你選擇的功能中使用。語音辨識使用裝置/平台能力。每日提醒使用本機通知。App 鎖定 PIN 與生物辨識留在本機。加密備份是你自行建立並儲存的檔案。App 內購買由 Apple 或 Google 處理。PutMind 不會出售你的資料。",
   "aboutDialogTitle": "關於 PutMind",
-  "aboutDialogBody": "PutMind: Find Your Things\nSnap it. Say where. Find it later.\n\nVersion 1.0.0 (Step 1 — UI foundation)",
+  "aboutDialogBody": "PutMind: Find Your Things\\nSnap it. Say where. Find it later.",
   "close": "關閉",
   "turnOnAppLockDialogTitle": "要開啟 App 鎖定嗎？",
   "turnOnAppLockDialogBody": "使用生物辨識並搭配 PIN 兜底，將保護此裝置上的你的記憶。\n\nPutMind 沒有帳號/後端，所以忘記的 PIN 無法透過電子郵件重設。若生物辨識仍可使用：解鎖 → 設定 → 變更 PIN。",
@@ -158,5 +158,8 @@
   "snackPurchaseCancelled": "已取消購買。",
   "snackPurchaseFailed": "購買失敗。請再試一次。",
   "snackPurchaseAlreadyOwned": "已購買 Lifetime。",
-  "snackStoreUnavailable": "目前無法使用商店。"
+  "snackStoreUnavailable": "目前無法使用商店。",
+  "viewPrivacyPolicy": "查看隱私權政策",
+  "snackBackupSaveFailed": "無法儲存備份檔案。請再試一次。",
+  "aboutVersionLabel": "版本 {version} ({buildNumber})"
 }

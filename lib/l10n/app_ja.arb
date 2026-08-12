@@ -46,13 +46,13 @@
   "languagePickerTitle": "言語",
   "autoLockPickerTitle": "自動ロック",
   "backupSheetTitle": "バックアップと復元",
-  "backupSheetBody": "暗号化バックアップを作成して保存するか、以前のバックアップから復元します。バックアップパスワードはApp Lock PINとは別です。",
+  "backupSheetBody": "暗号化バックアップを作成して保存場所を選ぶか、以前のバックアップから復元します。バックアップ用パスワードはアプリロックPINとは別です。",
   "createBackup": "バックアップ作成",
   "restoreBackup": "バックアップを復元",
   "privacyDialogTitle": "プライバシー",
-  "privacyDialogBody": "あなたの思い出は、あなたのもののままです。\n\nPutMindはローカルファーストです：アカウントなし、PutMindのクラウドDBなし、そしてMVPではPutMindサーバーへの写真アップロードなし。\n\n音声は可能な限り端末内で認識します。バックアップファイルはあなたが管理します。",
+  "privacyDialogBody": "あなたの思い出は、あなたのもののままです。\\n\\nPutMindはローカルファーストです。思い出・写真・文字起こしはこの端末に保存されます。PutMindアカウントやクラウド同期はありません。カメラとマイクは選んだ機能でのみ使います。音声認識は端末/プラットフォームの機能を使います。毎日のリマインダーはローカル通知です。アプリロックのPINと生体認証はこの端末に留まります。暗号化バックアップは自分で作成・保存するファイルです。アプリ内課金はAppleまたはGoogleが処理します。PutMindはデータを販売しません。",
   "aboutDialogTitle": "PutMind について",
-  "aboutDialogBody": "PutMind: Find Your Things\nSnap it. Say where. Find it later.\n\nVersion 1.0.0 (Step 1 — UI foundation)",
+  "aboutDialogBody": "PutMind: Find Your Things\\nSnap it. Say where. Find it later.",
   "close": "閉じる",
   "turnOnAppLockDialogTitle": "アプリロックをオンにしますか？",
   "turnOnAppLockDialogBody": "PINの代替を含む生体認証で、この端末の思い出を保護します。\n\nPutMindにはアカウント／バックエンドがないため、忘れたPINはメールでリセットできません。生体認証が引き続き使える場合は、解除 → 設定 → PINを変更してください。",
@@ -158,5 +158,8 @@
   "snackPurchaseCancelled": "購入をキャンセルしました。",
   "snackPurchaseFailed": "購入に失敗しました。もう一度お試しください。",
   "snackPurchaseAlreadyOwned": "Lifetimeはすでに購入済みです。",
-  "snackStoreUnavailable": "ストアを利用できません。"
+  "snackStoreUnavailable": "ストアを利用できません。",
+  "viewPrivacyPolicy": "プライバシーポリシーを見る",
+  "snackBackupSaveFailed": "バックアップファイルを保存できませんでした。もう一度お試しください。",
+  "aboutVersionLabel": "バージョン {version} ({buildNumber})"
 }
