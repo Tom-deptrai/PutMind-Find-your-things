@@ -10,6 +10,14 @@ permissions:
   pages: write
   id-token: write
 
+# GitHub Pages must already be enabled on the repo with
+# Settings → Pages → Build and deployment → Source = GitHub Actions.
+# actions/configure-pages enablement cannot create the Pages site with the
+# default GITHUB_TOKEN ("Resource not accessible by integration").
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -21,8 +29,6 @@ jobs:
         uses: actions/checkout@v6
       - name: Setup Pages
         uses: actions/configure-pages@v5
-        with:
-          enablement: true
       - name: Upload site
         uses: actions/upload-pages-artifact@v4
         with:
