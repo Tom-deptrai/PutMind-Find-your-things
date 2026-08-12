@@ -41,10 +41,13 @@ post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
     target.build_configurations.each do |config|
-      # Enable only camera permission for permission_handler (Product Spec: Capture).
+      # permission_handler macros — only permissions PutMind requests via this plugin.
+      # Speech uses speech_to_text (native). Notifications use flutter_local_notifications.
+      # Biometrics use local_auth (Face ID description is in Info.plist).
       config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= [
         '$(inherited)',
         'PERMISSION_CAMERA=1',
+        'PERMISSION_MICROPHONE=1',
       ]
     end
   end

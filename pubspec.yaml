@@ -48,12 +48,14 @@ flutter_launcher_icons:
   ios: true
   image_path: assets/branding/putmind_icon.png
   remove_alpha_ios: true
-  background_color_ios: "#081028"
-  # Full-bleed adaptive layers — Samsung/Android apply their own mask.
-  # inset 0 avoids the default 16% shrink that looked like icon-in-icon.
-  adaptive_icon_background: assets/branding/putmind_icon.png
+  # Match artwork edge cyan so iOS opaque canvas does not introduce a dark frame.
+  background_color_ios: "#CBF2F5"
+  # Solid adaptive background + artwork foreground (avoid double opaque layers).
+  adaptive_icon_background: "#CBF2F5"
   adaptive_icon_foreground: assets/branding/putmind_icon.png
-  adaptive_icon_foreground_inset: 0
+  # Keep artwork inside the adaptive safe zone across circle/squircle masks.
+  adaptive_icon_foreground_inset: 12
+  adaptive_icon_monochrome: assets/branding/putmind_icon_monochrome.png
 
 flutter:
   generate: true

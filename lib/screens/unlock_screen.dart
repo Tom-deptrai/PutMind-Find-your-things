@@ -73,7 +73,18 @@ class _BiometricUnlock extends StatelessWidget {
           textAlign: TextAlign.center,
         ),
         const Spacer(),
-        if (state.biometricAvailable)
+        if (!state.biometricCapabilityResolved)
+          const SizedBox(
+            height: 52,
+            child: Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2.5),
+              ),
+            ),
+          )
+        else if (state.biometricAvailable)
           SizedBox(
             width: double.infinity,
             height: 52,

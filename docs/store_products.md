@@ -2,6 +2,10 @@
 
 Code uses product id: **`putmind_lifetime`** (non-consumable / one-time).
 
+Production mobile runtime wires `StorePurchaseService` from `lib/main.dart`.
+Web / tests use `FakePurchaseService`. If the store product is not created yet,
+purchase/restore surfaces an unavailable state without crashing Home/Capture.
+
 ## Google Play Console
 
 1. Create app (or open existing) with package `com.putmind.putmind`.

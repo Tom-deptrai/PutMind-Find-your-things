@@ -47,6 +47,11 @@ app.*.map.json
 # Android local SDK path
 **/local.properties
 
+# Android upload signing (never commit)
+**/key.properties
+**/*.keystore
+**/*.jks
+
 # Local offline TTS tooling (do not commit weights/caches)
 tool/.tts_cache/
 tool/.venv*/

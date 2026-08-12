@@ -92,6 +92,8 @@ class AppState extends ChangeNotifier {
     );
     await state.reloadMemories();
     await state._purchase.initialize();
+    // Cold start: resolve biometric capability before Unlock UI paints.
+    await state.refreshBiometricAvailability();
     if (loaded.dailyReminder) {
       // Reschedule after restart — title/body filled by UI locale later via ensureReminder.
       await state._reminders.initialize();
@@ -162,6 +164,10 @@ class AppState extends ChangeNotifier {
   DateTime? _pausedAt;
   bool _biometricAvailable = false;
 
+  /// False until the first [refreshBiometricAvailability] completes.
+  /// Unlock UI must not show "unavailable" while this is false.
+  bool _biometricCapabilityResolved = false;
+
   // Reminder copy set by UI layer when scheduling (localized).
   String reminderTitle = 'PutMind';
   String reminderBody = 'Snap it. Say where. Find it later.';
@@ -217,6 +223,7 @@ class AppState extends ChangeNotifier {
   String? get pinError => _pinError;
   bool get awaitingPinSetup => _awaitingPinSetup;
   bool get biometricAvailable => _biometricAvailable;
+  bool get biometricCapabilityResolved => _biometricCapabilityResolved;
   int get memoryCount => _totalCount;
   bool get canAddMemory =>
       _settings.isLifetimeUnlocked || _totalCount < kFreeMemoryLimit;
@@ -244,6 +251,7 @@ class AppState extends ChangeNotifier {
 
   Future<void> refreshBiometricAvailability() async {
     _biometricAvailable = await _biometric.isAvailable;
+    _biometricCapabilityResolved = true;
     notifyListeners();
   }
 
@@ -255,6 +263,13 @@ class AppState extends ChangeNotifier {
   }
 
   void onAppResumed() {
+    if (_settings.appLock && _isLocked) {
+      _pausedAt = null;
+      // Re-check after force-close / background so Unlock does not stick on
+      // a stale "unavailable" state from a prior failed probe.
+      unawaited(refreshBiometricAvailability());
+      return;
+    }
     if (!_settings.appLock || _isLocked) {
       _pausedAt = null;
       return;
@@ -278,6 +293,7 @@ class AppState extends ChangeNotifier {
     _route = AppRoute.unlock;
     unawaited(_speech.cancel());
     unawaited(_voicePlayer.stop());
+    unawaited(refreshBiometricAvailability());
     notifyListeners();
   }
 
@@ -1129,6 +1145,8 @@ class AppState extends ChangeNotifier {
   }
 
   /// Test/debug helper — prefer [purchaseLifetime] in production UI.
+  /// Not referenced by production screens.
+  @visibleForTesting
   Future<void> unlockLifetime() => grantLifetimeEntitlement();
 
   Future<PurchasePhase> purchaseLifetime() async {
